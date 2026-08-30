@@ -1,0 +1,14 @@
+{
+  "name": "intact-prompt-optimizer",
+  "version": "2.0.0-prototype",
+  "description": "Prompt Optimizer v2 - rough intent to executable prompt, meaning preserved and verified",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test test/unit.test.mjs",
+    "eval": "node eval/run-eval.mjs",
+    "eval:heuristic": "node eval/run-eval.mjs --heuristic"
+  },
+  "engines": { "node": ">=18" }
+}

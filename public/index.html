@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intact - Prompt Optimizer v2</title>
+<style>
+  :root {
+    --bg: #0e1116; --panel: #161b23; --panel2: #1c232e; --border: #2a3442;
+    --text: #e6ebf2; --muted: #8b98a9; --accent: #5eb0ff; --ok: #46c98d; --bad: #ff7a6e; --warn: #f0b357;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg: #f4f6f9; --panel: #ffffff; --panel2: #eef2f7; --border: #d7dee8; --text: #1a2330; --muted: #5b6878; --accent: #1e6fd9; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  header { display: flex; align-items: baseline; gap: 12px; padding: 18px 24px 10px; }
+  header h1 { margin: 0; font-size: 20px; letter-spacing: .3px; }
+  header .sub { color: var(--muted); font-size: 13px; }
+  #mode { margin-left: auto; font-size: 12px; padding: 3px 10px; border-radius: 20px; border: 1px solid var(--border); color: var(--muted); }
+  #mode.llm { color: var(--ok); border-color: var(--ok); }
+  main { display: grid; grid-template-columns: minmax(320px, 1fr) minmax(360px, 1.2fr); gap: 16px; padding: 8px 24px 32px; }
+  @media (max-width: 880px) { main { grid-template-columns: 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  label { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin: 12px 0 6px; }
+  textarea, select { width: 100%; background: var(--panel2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 10px; font: inherit; }
+  textarea { resize: vertical; }
+  #input { min-height: 160px; }
+  #context { min-height: 60px; }
+  button { cursor: pointer; border: 0; border-radius: 8px; font: inherit; }
+  #go { margin-top: 14px; width: 100%; padding: 12px; background: var(--accent); color: #fff; font-weight: 600; font-size: 15px; }
+  #go:disabled { opacity: .5; cursor: wait; }
+  #result { white-space: pre-wrap; font-family: var(--mono); font-size: 13px; background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; min-height: 120px; max-height: 46vh; overflow: auto; }
+  .rowhead { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .rowhead h2 { margin: 0; font-size: 15px; }
+  #copy { margin-left: auto; background: var(--panel2); border: 1px solid var(--border); color: var(--text); padding: 5px 12px; font-size: 13px; }
+  .check { display: flex; gap: 8px; align-items: baseline; padding: 5px 0; border-bottom: 1px dashed var(--border); font-size: 13px; }
+  .check:last-child { border-bottom: 0; }
+  .check .dot { font-weight: 700; }
+  .pass .dot { color: var(--ok); } .fail .dot { color: var(--bad); }
+  .check .detail { color: var(--muted); }
+  .pill { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 10px; border: 1px solid var(--border); color: var(--muted); margin-left: 6px; }
+  ul.small { margin: 6px 0; padding-left: 20px; font-size: 13px; color: var(--muted); }
+  #verdict { font-weight: 700; padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; display: none; }
+  #verdict.ok { display: block; background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--ok); }
+  #verdict.warn { display: block; background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--warn); }
+  #verdict.bad { display: block; background: color-mix(in srgb, var(--bad) 14%, transparent); color: var(--bad); }
+  #meta { color: var(--muted); font-size: 12px; margin-top: 8px; }
+  .spinner { display: none; color: var(--muted); font-size: 13px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Intact</h1>
+  <span class="sub">Prompt Optimizer v2 - your meaning, verified</span>
+  <span id="mode">checking engine...</span>
+</header>
+<main>
+  <section class="card">
+    <label for="input">Rough prompt</label>
+    <textarea id="input" placeholder="Paste your rough idea. Example: make me a landing page for my bakery, modern look, needs an order form, don't use react"></textarea>
+    <label for="target">Target</label>
+    <select id="target">
+      <option value="claude-code">Claude Code / coding agent</option>
+      <option value="chat" selected>Chat assistant</option>
+      <option value="api">LLM API call</option>
+      <option value="image">Image generation</option>
+    </select>
+    <label for="context">Extra context (optional, treated as source material)</label>
+    <textarea id="context" placeholder="Stack, audience, links - anything the optimizer may use"></textarea>
+    <button id="go">Optimize</button>
+    <div class="spinner" id="spin">Optimizing locally - extract, synthesize, verify...</div>
+  </section>
+  <section class="card">
+    <div id="verdict"></div>
+    <div class="rowhead">
+      <h2>Optimized prompt</h2>
+      <span id="badges"></span>
+      <button id="copy" hidden>Copy</button>
+    </div>
+    <div id="result">Result appears here.</div>
+    <div id="meta"></div>
+    <div class="rowhead" style="margin-top:16px"><h2>Fidelity report</h2></div>
+    <div id="checks"><span style="color:var(--muted);font-size:13px">Runs automatically after each optimization: protected-span retention, no-invention scan, structure check, meaning judge.</span></div>
+    <div id="lists"></div>
+  </section>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+
+async function health() {
+  try {
+    const h = await (await fetch('/api/health')).json();
+    const el = $('mode');
+    if (h.ollama) { el.textContent = 'local LLM: ' + h.defaultModel; el.classList.add('llm'); }
+    else { el.textContent = 'heuristic fallback (Ollama offline)'; }
+  } catch { $('mode').textContent = 'server unreachable'; }
+}
+health();
+
+function renderCheck(c) {
+  const map = {
+    span_retention: ['Protected details kept', c.total !== undefined ? `${c.kept}/${c.total} spans` : ''],
+    no_invention: ['No invented numbers/URLs', ''],
+    structure: ['Required structure present', ''],
+    language_match: ['Same language as source', ''],
+  };
+  const [title] = map[c.name] || [c.name];
+  let detail = map[c.name] ? map[c.name][1] : '';
+  if (!c.passed) {
+    if (c.missing && c.missing.length) detail = 'missing: ' + c.missing.map((m) => m.span || m).join(', ');
+    if (c.inventedNumbers && (c.inventedNumbers.length || c.inventedUrls.length)) detail = 'invented: ' + [...c.inventedNumbers, ...c.inventedUrls].join(', ');
+    if (c.name === 'language_match') detail = 'source reads as ' + c.source + ', output as ' + c.optimized;
+  }
+  return `<div class="check ${c.passed ? 'pass' : 'fail'}"><span class="dot">${c.passed ? 'PASS' : 'FAIL'}</span><span>${title}</span><span class="detail">${detail}</span></div>`;
+}
+
+function renderJudge(j) {
+  if (!j) return '<div class="check"><span class="dot" style="color:var(--warn)">SKIP</span><span>Meaning judge</span><span class="detail">needs local LLM</span></div>';
+  let detail = '';
+  if (!j.passed) {
+    const parts = [];
+    if (j.added.length) parts.push('added: ' + j.added.join('; '));
+    if (j.dropped.length) parts.push('dropped: ' + j.dropped.join('; '));
+    if (j.altered.length) parts.push('altered: ' + j.altered.join('; '));
+    detail = parts.join(' | ') || j.verdict;
+  }
+  return `<div class="check ${j.passed ? 'pass' : 'fail'}"><span class="dot">${j.passed ? 'PASS' : 'FAIL'}</span><span>Meaning judge (LLM)</span><span class="detail">${detail}</span></div>`;
+}
+
+$('go').addEventListener('click', async () => {
+  const input = $('input').value.trim();
+  if (!input) return;
+  $('go').disabled = true; $('spin').style.display = 'block';
+  $('verdict').className = ''; $('checks').innerHTML = ''; $('lists').innerHTML = ''; $('meta').textContent = '';
+  $('result').textContent = 'Working...';
+  try {
+    const res = await fetch('/api/optimize', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ input, target: $('target').value, context: $('context').value }),
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    $('result').textContent = data.optimized;
+    $('copy').hidden = false;
+    const v = $('verdict');
+    const level = data.fidelity.level || (data.fidelity.passed ? 'verified' : 'failed');
+    if (level === 'verified') { v.textContent = 'Meaning preserved - all fidelity checks passed'; v.className = 'ok'; }
+    else if (level === 'review') { v.textContent = 'Literals verified - the meaning judge suggests a review (see below)'; v.className = 'warn'; }
+    else { v.textContent = 'Fidelity check failed - do not trust this rewrite blindly'; v.className = 'bad'; }
+    $('badges').innerHTML = `<span class="pill">${data.mode}${data.model ? ': ' + data.model : ''}</span>` + (data.repaired ? '<span class="pill">auto-repaired</span>' : '');
+    $('checks').innerHTML = data.fidelity.checks.map(renderCheck).join('') + renderJudge(data.fidelity.judge);
+    let lists = '';
+    if (data.assumptions && data.assumptions.length) lists += `<h3 style="font-size:13px;margin:12px 0 2px">Assumptions (tagged, not silent)</h3><ul class="small">${data.assumptions.map((a) => `<li>${a}</li>`).join('')}</ul>`;
+    if (data.openQuestions && data.openQuestions.length) lists += `<h3 style="font-size:13px;margin:12px 0 2px">Open questions (instead of guessing)</h3><ul class="small">${data.openQuestions.map((q) => `<li>${q}</li>`).join('')}</ul>`;
+    $('lists').innerHTML = lists;
+    $('meta').textContent = `${(data.elapsedMs / 1000).toFixed(1)}s` + (data.repaired ? ' - one repair round applied' : '');
+  } catch (err) {
+    $('result').textContent = 'Error: ' + err.message;
+  } finally {
+    $('go').disabled = false; $('spin').style.display = 'none';
+  }
+});
+
+$('copy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText($('result').textContent); $('copy').textContent = 'Copied'; setTimeout(() => ($('copy').textContent = 'Copy'), 1200); }
+  catch { $('copy').textContent = 'Select + copy manually'; }
+});
+</script>
+</body>
+</html>

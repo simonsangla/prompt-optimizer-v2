@@ -1,0 +1,62 @@
+[
+  {
+    "id": "bakery-landing",
+    "category": "web-dev, vague-with-constraints",
+    "target": "claude-code",
+    "input": "make me a landing page for my bakery PaoDourado, modern look, needs an order form, dont use react, budget is 500 EUR so keep it simple"
+  },
+  {
+    "id": "bug-fix",
+    "category": "coding, specific",
+    "target": "claude-code",
+    "input": "the getUserProfile endpoint in api/users.ts returns 500 when the avatar field is null, fix it and add a test, dont touch the db schema"
+  },
+  {
+    "id": "blog-post",
+    "category": "writing",
+    "target": "chat",
+    "input": "write a blog post about our migration from Redshift to Snowflake, 800 words max, for data engineers, mention we cut costs by 40% and query time from 45s to 3s"
+  },
+  {
+    "id": "vague-marketing",
+    "category": "vague",
+    "target": "chat",
+    "input": "I need something for social media about the new product launch next week"
+  },
+  {
+    "id": "contradictory",
+    "category": "contradictory-constraints",
+    "target": "chat",
+    "input": "write a very detailed technical deep-dive but keep it under 100 words and make it fun for kids"
+  },
+  {
+    "id": "french-email",
+    "category": "non-english",
+    "target": "chat",
+    "input": "ecris un email pour mon client Teresa pour repousser la reunion de mardi a jeudi 14h, reste poli mais bref, en francais"
+  },
+  {
+    "id": "analytics-query",
+    "category": "analytics",
+    "target": "api",
+    "input": "build a prompt that takes raw customer reviews and classifies sentiment into positive negative neutral, output json with fields sentiment and confidence, reviews are in english and portuguese"
+  },
+  {
+    "id": "already-structured",
+    "category": "already-structured",
+    "target": "chat",
+    "input": "Goal: summarize quarterly sales report. Context: board presentation, non-technical audience. Constraints: one page, no jargon, highlight the 12% YoY growth. Output: bullet points."
+  },
+  {
+    "id": "image-poster",
+    "category": "image",
+    "target": "image",
+    "input": "poster for a jazz concert at Teatro Aberto on March 15, art deco vibes, gold and dark blue, no text on the image"
+  },
+  {
+    "id": "refactor-scoped",
+    "category": "coding, scope-limits",
+    "target": "claude-code",
+    "input": "refactor the payment_service module to use async await instead of callbacks, keep the public API identical, all 47 existing tests must still pass, do not upgrade any dependencies"
+  }
+]
