@@ -80,6 +80,26 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, result);
     }
 
+    if (url.pathname === '/api/refine/optimize' && req.method === 'POST') {
+      const raw = await readBody(req);
+      let body;
+      try { body = JSON.parse(raw); } catch { return json(res, 400, { error: 'invalid JSON body' }); }
+      const prompt = String(body.prompt || '').trim();
+      const turns = body.turns || [];
+      if (!prompt) return json(res, 400, { error: 'prompt is required' });
+      if (!Array.isArray(turns) || turns.length > 12) return json(res, 400, { error: 'turns must be an array of at most 12 items' });
+      const transcript = turns.map((turn) => `${turn.role === 'user' ? 'User answer' : 'Refinr question'}: ${String(turn.text || '').trim()}`).join('\n');
+      const started = Date.now();
+      const result = await optimize(prompt, {
+        target: String(body.target || 'chat'),
+        context: transcript ? `Confirmed conversation answers:\n${transcript}` : '',
+        model: body.model ? String(body.model) : undefined,
+      });
+      result.elapsedMs = Date.now() - started;
+      result.inputChars = prompt.length + transcript.length;
+      return json(res, 200, result);
+    }
+
     // static files
     let path = url.pathname === '/' ? '/index.html' : url.pathname;
     path = normalize(path).replace(/^(\.\.[/\\])+/, '');

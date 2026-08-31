@@ -27,12 +27,18 @@ function App() {
   const [turns, setTurns] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [result, setResult] = useState(null);
+  const [checks, setChecks] = useState({ intent: false, fidelity: false, open: false });
 
   async function start() {
     const text = prompt.trim();
     if (!text || busy) return;
-    setBusy(true); setError(''); setTurns([]);
-    try { setQuestion(await refinr.ask(text, [])); }
+    setBusy(true); setError(''); setTurns([]); setResult(null); setChecks({ intent: false, fidelity: false, open: false });
+    try {
+      const next = await refinr.ask(text, []);
+      setQuestion(next);
+      if (!next) setResult(await refinr.optimize(text, []));
+    }
     catch (err) { setError(err.message); }
     finally { setBusy(false); }
   }
@@ -41,10 +47,17 @@ function App() {
     if (busy || !question) return;
     const nextTurns = [...turns, { role: 'assistant', type: 'question', id: question.id, text: question.text }, { role: 'user', type: 'answer', text }];
     setTurns(nextTurns); setBusy(true); setError('');
-    try { setQuestion(await refinr.ask(prompt.trim(), nextTurns)); }
+    try {
+      const next = await refinr.ask(prompt.trim(), nextTurns);
+      setQuestion(next);
+      if (!next) setResult(await refinr.optimize(prompt.trim(), nextTurns));
+    }
     catch (err) { setError(err.message); }
     finally { setBusy(false); }
   }
+
+  function restart() { setPrompt(''); setQuestion(null); setTurns([]); setResult(null); setError(''); setChecks({ intent: false, fidelity: false, open: false }); }
+  const readyToApply = result?.optimized && result.fidelity?.level !== 'failed' && Object.values(checks).every(Boolean);
 
   return <AssistantRuntimeProvider runtime={runtime}>
     <main className="shell">
@@ -58,6 +71,17 @@ function App() {
         </form>}
         {turns.map((turn, index) => <div className={`turn ${turn.role}`} key={`${turn.role}-${index}`}><b>{turn.role === 'user' ? 'You' : 'Refinr'}</b><span>{turn.text}</span></div>)}
         {question && <QuestionCard question={question} onAnswer={answer} disabled={busy} />}
+        {result && <section className="result" aria-live="polite">
+          <div className="result-head"><p className="question-label">Refinr · verified optimizer result</p><span>{result.mode}{result.model ? ` · ${result.model}` : ''}</span></div>
+          <pre>{result.optimized}</pre>
+          <p className="evidence"><b>Fidelity: {result.fidelity?.level || 'review'}</b> · {result.elapsedMs}ms · {result.inputChars} input characters</p>
+          {result.fidelity?.level === 'failed' && <p className="warning" role="alert">This result failed fidelity verification and cannot be copied. Revise the prompt or try again.</p>}
+          <div className="checks">
+            {Object.entries({ intent: 'Intent is preserved', fidelity: 'Fidelity evidence reviewed', open: 'Open questions accepted' }).map(([id, label]) => <label key={id}><input type="checkbox" checked={checks[id]} onChange={(event) => setChecks({ ...checks, [id]: event.target.checked })} />{label}</label>)}
+          </div>
+          <div className="result-actions"><button disabled={!readyToApply} onClick={() => navigator.clipboard?.writeText(result.optimized)}>Copy verified prompt</button><button className="secondary" onClick={restart}>Start another prompt</button></div>
+          {!readyToApply && result.fidelity?.level !== 'failed' && <small className="hint">Review all three checks before copying the verified prompt.</small>}
+        </section>}
         {error && <p className="error" role="alert">{error}</p>}
       </ThreadPrimitive.Viewport></ThreadPrimitive.Root>
     </main>

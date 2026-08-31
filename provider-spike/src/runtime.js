@@ -9,4 +9,15 @@ export class RefinrRuntime {
     if (!response.ok || payload.error) throw new Error(payload.error || `Question request failed (${response.status})`);
     return payload.done ? null : payload.question;
   }
+
+  async optimize(prompt, turns) {
+    const response = await fetch('/api/refine/optimize', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ prompt, turns, target: 'chat' }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || payload.error) throw new Error(payload.error || `Optimization request failed (${response.status})`);
+    return payload;
+  }
 }

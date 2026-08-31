@@ -12,4 +12,10 @@ button { border: 0; border-radius: 9px; background: #c96442; color: #fff; paddin
 .question-card { background: #fffdf8; border-left: 3px solid #c96442; padding: 18px; margin-top: 24px; } .question-card h2 { font: 600 24px Georgia, serif; }
 .question-label { color: #3d715f; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; font-weight: 800; } .options { display: flex; flex-wrap: wrap; gap: 8px; } .question-card form { display: flex; gap: 8px; margin-top: 14px; } .question-card input { flex: 1; }
 .error { color: #984e38; margin-top: 20px; }
+.result { margin-top: 28px; border-top: 1px solid #ded8ca; padding-top: 22px; }
+.result-head { display:flex; justify-content:space-between; align-items:baseline; gap:12px; } .result-head span,.evidence,.hint { color:#77736a; font-size:12px; }
+pre { white-space: pre-wrap; background:#fffdf8; border:1px solid #ded8ca; border-radius:10px; padding:16px; line-height:1.55; font:14px/1.55 ui-monospace,SFMono-Regular,monospace; }
+.checks { display:grid; gap:8px; margin:14px 0; } .checks label { font-size:13px; } .checks input { accent-color:#3d715f; margin-right:8px; }
+.result-actions { display:flex; gap:8px; flex-wrap:wrap; } .secondary { background:transparent; color:#1a1a18; border:1px solid #c7c5bb; }
+.warning { color:#984e38; background:#f1d9d0; border:1px solid #d9aa99; border-radius:8px; padding:10px; font-size:13px; }
 @media (max-width: 600px) { header span { display: none; } h1 { font-size: 34px; } .thread { margin-top: 8vh; } .question-card form { flex-direction: column; } }
