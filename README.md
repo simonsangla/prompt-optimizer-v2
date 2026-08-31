@@ -32,6 +32,10 @@ optimized prompt + fidelity report (PASS/FAIL per check)
 If Ollama is offline the pipeline degrades to a deterministic heuristic that only
 rearranges source sentences - meaning-safe by construction.
 
+## Repo
+
+https://github.com/simonsangla/prompt-optimizer-v2 (private)
+
 ## Live deployment
 
 - Production: https://intact-prompt-optimizer.vercel.app
