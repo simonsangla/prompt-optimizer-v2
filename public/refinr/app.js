@@ -18,6 +18,7 @@ function reset() {
   $('apply').classList.remove('applied');
   $('apply').textContent = 'Apply confirmed answers';
   root.querySelectorAll('.option').forEach((button) => button.removeAttribute('aria-pressed'));
+  root.querySelectorAll('.option').forEach((button) => { button.disabled = false; });
   ['question2', 'question3', 'result'].forEach((id) => { $(id).hidden = true; });
   render(root, state);
 }
@@ -37,6 +38,7 @@ root.querySelectorAll('.option').forEach((button) => button.addEventListener('cl
   const card = button.closest('.message');
   card.querySelectorAll('.option').forEach((choice) => choice.setAttribute('aria-pressed', 'false'));
   button.setAttribute('aria-pressed', 'true');
+  card.querySelectorAll('.option').forEach((choice) => { choice.disabled = true; });
   const key = recordAnswer(state, button);
   const next = nextQuestion(key);
   if (next) $(next).hidden = false;
@@ -58,6 +60,11 @@ $('apply').addEventListener('click', () => {
   $('stage').textContent = 'Confirmed source material applied · verification next';
 });
 
-wireNavigation(root, { reset, showResearch: () => { $('stage').textContent = 'Research summary · draft not started'; } });
-wireDrawer(root);
+const drawer = wireDrawer(root);
+const originalReset = reset;
+// Keep reset reusable while ensuring an open mobile review never survives into
+// a new prompt session.
+function resetAndCloseReview() { drawer.setOpen(false); originalReset(); }
+// Navigation is wired after the drawer so reset can close the review surface.
+wireNavigation(root, { reset: resetAndCloseReview, showResearch: () => { $('stage').textContent = 'Research summary · draft not started'; } });
 render(root, state);
