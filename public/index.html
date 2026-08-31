@@ -38,7 +38,7 @@
   .check { display: flex; gap: 8px; align-items: baseline; padding: 5px 0; border-bottom: 1px dashed var(--border); font-size: 13px; }
   .check:last-child { border-bottom: 0; }
   .check .dot { font-weight: 700; }
-  .pass .dot { color: var(--ok); } .fail .dot { color: var(--bad); }
+  .pass .dot { color: var(--ok); } .fail .dot { color: var(--bad); } .note .dot { color: var(--warn); }
   .check .detail { color: var(--muted); }
   .pill { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 10px; border: 1px solid var(--border); color: var(--muted); margin-left: 6px; }
   ul.small { margin: 6px 0; padding-left: 20px; font-size: 13px; color: var(--muted); }
@@ -113,15 +113,22 @@ function renderCheck(c) {
     no_invention: ['No invented numbers/URLs', ''],
     structure: ['Required structure present', ''],
     language_match: ['Same language as source', ''],
+    content_coverage: ['Source wording carried over', c.ratio === null ? 'not applicable (non-English)' : `${Math.round(c.ratio * 100)}% of source terms`],
   };
   const [title] = map[c.name] || [c.name];
   let detail = map[c.name] ? map[c.name][1] : '';
+  // An advisory check never reads as a hard failure - it is a note, and the
+  // verdict banner already reflects it.
+  const state = c.passed ? 'pass' : c.advisory ? 'note' : 'fail';
+  const label = c.passed ? 'PASS' : c.advisory ? 'NOTE' : 'FAIL';
   if (!c.passed) {
     if (c.missing && c.missing.length) detail = 'missing: ' + c.missing.map((m) => m.span || m).join(', ');
     if (c.inventedNumbers && (c.inventedNumbers.length || c.inventedUrls.length)) detail = 'invented: ' + [...c.inventedNumbers, ...c.inventedUrls].join(', ');
     if (c.name === 'language_match') detail = 'source reads as ' + c.source + ', output as ' + c.optimized;
+    if (c.name === 'content_coverage') detail = `${Math.round(c.ratio * 100)}% of source terms - missing: ${c.missing.join(', ')}`;
+    if (c.name === 'structure' && c.advisory) detail = `not emitted (no source content for: ${c.missing.join(', ')})`;
   }
-  return `<div class="check ${c.passed ? 'pass' : 'fail'}"><span class="dot">${c.passed ? 'PASS' : 'FAIL'}</span><span>${title}</span><span class="detail">${detail}</span></div>`;
+  return `<div class="check ${state}"><span class="dot">${label}</span><span>${title}</span><span class="detail">${detail}</span></div>`;
 }
 
 function renderJudge(j) {
