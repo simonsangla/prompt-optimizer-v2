@@ -32,6 +32,7 @@
 @media (max-width:650px){.review-toggle{display:block}.review-close{display:block}}
 .thread{border:0;border-left:2px solid var(--accent);text-align:left;color:inherit;width:100%;cursor:pointer}.thread:hover,.thread:focus-visible,.new:hover,.new:focus-visible{background:#fffaf0;outline:2px solid var(--accent);outline-offset:2px}.new{cursor:pointer}
 </style>
+<link rel="stylesheet" href="./refinr/styles.css">
 </head>
 <body>
 <div class="app">
@@ -42,9 +43,9 @@
       <div class="empty" id="empty"><h1>Better prompts begin with a better conversation.</h1><p>Paste a rough prompt, answer up to three focused questions, and review every change before it is applied.</p><textarea id="roughPrompt" aria-label="Rough prompt" placeholder="Paste your rough prompt here…" style="display:block;width:100%;min-height:82px;margin:0 auto 12px;padding:12px;border:1px solid var(--line);border-radius:10px;font:15px ui-sans-serif;background:var(--panel)"></textarea><button class="start" id="start">Try the guided flow</button></div>
       <div class="conversation" id="conversation" hidden>
         <div class="message user"><div class="bubble"><div class="who">You · original prompt</div><p>Make me a landing page for my bakery. Modern look, order form, don't use React.</p></div></div>
-        <div class="message"><div class="bubble"><div class="who">Intact · question 1 of 3</div><div class="question-card"><h3>What should visitors do first?</h3><p>This determines the primary action and page hierarchy.</p><div class="options"><button class="option" data-fact="Primary action|Place an order">Place an order</button><button class="option" data-fact="Primary action|Browse the menu">Browse the menu</button><button class="option" data-fact="Primary action|Find the bakery">Find the bakery</button></div></div></div></div>
-        <div class="message" id="question2" hidden><div class="bubble"><div class="who">Intact · question 2 of 3</div><div class="question-card"><h3>Should “modern” feel editorial or playful?</h3><p>Choose a direction, keep it open, or type your own answer.</p><div class="options"><button class="option" data-fact="Visual direction|Editorial and calm">Editorial and calm</button><button class="option" data-fact="Visual direction|Warm and playful">Warm and playful</button><button class="option" data-fact="Visual direction|Keep it open">Keep it open</button></div></div></div></div>
-        <div class="message" id="question3" hidden><div class="bubble"><div class="who">Intact · question 3 of 3</div><div class="question-card"><h3>What should the order form collect?</h3><p>This is optional. Leave unresolved rather than inventing fields.</p><div class="options"><button class="option" data-fact="Order form|Pickup details">Pickup details</button><button class="option" data-fact="Order form|Delivery details">Delivery details</button><button class="option" data-fact="Order form|Leave unresolved">Leave unresolved</button></div></div></div></div>
+        <div class="message"><div class="bubble"><div class="who">Refinr · question 1 of 3</div><div class="question-card"><h3>What should visitors do first?</h3><p>This determines the primary action and page hierarchy.</p><div class="options"><button class="option" data-fact="Primary action|Place an order">Place an order</button><button class="option" data-fact="Primary action|Browse the menu">Browse the menu</button><button class="option" data-fact="Primary action|Find the bakery">Find the bakery</button></div></div></div></div>
+        <div class="message" id="question2" hidden><div class="bubble"><div class="who">Refinr · question 2 of 3</div><div class="question-card"><h3>Should “modern” feel editorial or playful?</h3><p>Choose a direction, keep it open, or type your own answer.</p><div class="options"><button class="option" data-fact="Visual direction|Editorial and calm">Editorial and calm</button><button class="option" data-fact="Visual direction|Warm and playful">Warm and playful</button><button class="option" data-fact="Visual direction|Keep it open">Keep it open</button></div></div></div></div>
+        <div class="message" id="question3" hidden><div class="bubble"><div class="who">Refinr · question 3 of 3</div><div class="question-card"><h3>What should the order form collect?</h3><p>This is optional. Leave unresolved rather than inventing fields.</p><div class="options"><button class="option" data-fact="Order form|Pickup details">Pickup details</button><button class="option" data-fact="Order form|Delivery details">Delivery details</button><button class="option" data-fact="Order form|Leave unresolved">Leave unresolved</button></div></div></div></div>
         <div class="message" id="result" hidden><div class="bubble"><div class="who">Intact · demo result</div><p id="resultText">Your confirmed answers are ready to apply.</p></div></div>
       </div>
     </main>
@@ -52,33 +53,4 @@
   </section>
   <aside class="inspector"><span class="status"><i></i><span id="status">0 confirmed · 3 open</span></span><h2>Human validation</h2><p>Review the source material before Refinr applies a recommendation.</p><div class="check"><input type="checkbox" id="intentCheck"><label for="intentCheck"><b>Intent is recognizable</b><br><span>Same job, clearer instructions.</span></label></div><div class="check"><input type="checkbox" id="constraintCheck"><label for="constraintCheck"><b>Constraints are preserved</b><br><span>No silent additions or removals.</span></label></div><div class="check"><input type="checkbox" id="openCheck"><label for="openCheck"><b>Open questions are acceptable</b><br><span>Unresolved items stay visible.</span></label></div><hr class="rule"><h2>Confirmed source material</h2><p>Only confirmed answers reach the optimizer.</p><div id="facts"><div class="fact"><b>Original constraint</b><span>Do not use React</span></div></div><hr class="rule"><h2>Change preview</h2><p>Green text is confirmed. Red text is a rejected direction.</p><div class="diff-line" id="diff">The primary action is <span class="add">not set yet</span>. Visual direction is <span class="reject">not applied</span>.</div><button class="apply" id="apply" disabled>Apply confirmed answers</button></aside>
 </div><div class="footer-note">Inspired by assistant-ui claude.tsx · Refinr · AskUserQuestion · AI Elements</div>
-<script>
-(() => {
-  const state = { facts: [] };
-  const $ = (id) => document.getElementById(id);
-  const inspector = document.querySelector('.inspector');
-  const toggle = $('reviewToggle');
-  const close = document.createElement('button');
-  close.className = 'review-close'; close.type = 'button'; close.setAttribute('aria-label', 'Close review'); close.textContent = '×';
-  inspector.id = 'inspector'; inspector.setAttribute('aria-label', 'Human validation'); inspector.prepend(close);
-  const setReviewOpen = (open) => { inspector.classList.toggle('open', open); toggle.setAttribute('aria-expanded', String(open)); if (open) close.focus(); else toggle.focus(); };
-  const reset = () => { state.facts.length = 0; $('empty').hidden = false; $('conversation').hidden = true; $('roughPrompt').value = ''; $('apply').classList.remove('applied'); $('apply').textContent = 'Apply confirmed answers'; document.querySelectorAll('.option').forEach((b) => b.removeAttribute('aria-pressed')); $('question2').hidden = true; $('question3').hidden = true; $('result').hidden = true; update(); };
-  function update() {
-    const n = state.facts.length;
-    $('status').textContent = `${n} confirmed · ${3 - n} open`;
-    $('mobileStatus').textContent = `${n} of 3 confirmed`;
-    $('stage').textContent = n < 3 ? `Question ${n + 1} of 3 · confirmation required` : 'Ready for human review';
-    $('facts').innerHTML = '<div class="fact"><b>Original constraint</b><span>Do not use React</span></div>' + state.facts.map(([k, v]) => `<div class="fact"><b>${k}</b><span>${v}</span></div>`).join('');
-    const primary = state.facts.find((f) => f[0] === 'Primary action'); const visual = state.facts.find((f) => f[0] === 'Visual direction');
-    $('diff').innerHTML = `The primary action is ${primary ? `<span class="add">${primary[1]}</span>` : '<span class="add">not set yet</span>'}. Visual direction is ${visual && visual[1] !== 'Keep it open' ? `<span class="add">${visual[1]}</span>` : '<span class="reject">left open</span>'}.`;
-    $('apply').disabled = !(n > 0 && ['intentCheck', 'constraintCheck', 'openCheck'].every((id) => $(id).checked));
-  }
-  $('start').addEventListener('click', () => { const raw = $('roughPrompt').value.trim(); if (raw) document.querySelector('.message.user .bubble p').textContent = raw; $('empty').hidden = true; $('conversation').hidden = false; $('question2').hidden = true; $('question3').hidden = true; $('result').hidden = true; update(); });
-  document.querySelectorAll('.option').forEach((button) => button.addEventListener('click', () => { const card = button.closest('.message'); card.querySelectorAll('.option').forEach((x) => x.setAttribute('aria-pressed', 'false')); button.setAttribute('aria-pressed', 'true'); const pair = button.dataset.fact.split('|'); state.facts.splice(0, state.facts.length, ...state.facts.filter((f) => f[0] !== pair[0]), pair); const next = card.id === 'question2' ? 'question3' : 'question2'; if (card.id === 'question3') $('result').hidden = false; else $(next).hidden = false; card.querySelector('.question-card').style.opacity = '.72'; $('apply').classList.remove('applied'); update(); }));
-  ['intentCheck', 'constraintCheck', 'openCheck'].forEach((id) => $(id).addEventListener('change', update));
-  $('apply').addEventListener('click', () => { if ($('apply').disabled) return; $('result').hidden = false; $('resultText').textContent = 'Applied in demo: confirmed choices are now the optimizer source material. Next screen would show the verified structured prompt and diff.'; $('apply').textContent = 'Applied · open verified result'; $('apply').classList.add('applied'); $('stage').textContent = 'Confirmed source material applied · verification next'; });
-  $('newPrompt').addEventListener('click', reset); document.querySelectorAll('.thread').forEach((item, index) => { item.setAttribute('role', 'button'); item.tabIndex = 0; item.addEventListener('click', index === 0 ? () => reset() : () => { $('stage').textContent = 'Research summary · draft not started'; }); item.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); item.click(); } }); });
-  toggle.addEventListener('click', () => setReviewOpen(!inspector.classList.contains('open'))); close.addEventListener('click', () => setReviewOpen(false)); document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && inspector.classList.contains('open')) setReviewOpen(false); });
-  update();
-})();
-</script></body></html>
+<script type="module" src="./refinr/app.js"></script></body></html>
