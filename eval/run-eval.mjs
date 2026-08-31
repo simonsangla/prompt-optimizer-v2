@@ -37,7 +37,14 @@ for (const f of fixtures) {
     };
     result.fidelity.passed = result.fidelity.checks.every((c) => c.passed);
   } else {
-    result = await optimize(f.input, { target: f.target });
+    try {
+      result = await optimize(f.input, { target: f.target });
+    } catch (err) {
+      console.log(`ERROR (${String(err.message || err).slice(0, 60)})`);
+      rows.push({ id: f.id, category: f.category, mode: 'error', spans: '-', spanPass: null, inventionPass: null, languagePass: null, structurePass: null, judgePass: null, repaired: false, overall: false, secs: ((Date.now() - started) / 1000).toFixed(0), openQuestions: 0, assumptions: 0, error: String(err.message || err) });
+      failDetails.push({ id: f.id, checks: [], judge: null, optimized: `PIPELINE ERROR: ${err.message || err}` });
+      continue;
+    }
   }
   const secs = ((Date.now() - started) / 1000).toFixed(0);
 
@@ -108,5 +115,6 @@ ${failDetails.length ? `## Failure details\n\n${failDetails.map((d) => `### ${d.
 - "repaired" means the first draft failed a check and one automatic repair round ran.
 `;
 
-await writeFile(new URL('./EVIDENCE.md', import.meta.url), md);
-console.log('\nWrote eval/EVIDENCE.md');
+const outName = heuristicOnly ? './EVIDENCE-heuristic.md' : './EVIDENCE.md';
+await writeFile(new URL(outName, import.meta.url), md);
+console.log(`\nWrote eval/${outName.slice(2)}`);

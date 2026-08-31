@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { protectedSpans, numberTokens, urlTokens } from '../lib/extract.mjs';
-import { spanRetention, noInvention, structureCheck, guessLanguage, languageMatch } from '../lib/verify.mjs';
+import { spanRetention, noInvention, structureCheck, guessLanguage, languageMatch, contentCoverage } from '../lib/verify.mjs';
 import { heuristicOptimize } from '../lib/heuristic.mjs';
 
 test('protectedSpans catches urls, numbers, identifiers, quotes, code', () => {
@@ -83,4 +83,41 @@ test('heuristic buckets constraints and output cues', () => {
   const r = heuristicOptimize('Summarize the report. Avoid jargon. Return it as a table.', { target: 'chat' });
   assert.ok(/# Constraints/.test(r.optimized));
   assert.ok(/# Output format/.test(r.optimized));
+});
+
+test('protectedSpans captures proper nouns and unit-suffixed numbers', () => {
+  const values = protectedSpans(
+    'write about our migration from Redshift to Snowflake, cut query time from 45s to 3s, poster at Teatro Aberto',
+  ).map((s) => s.span);
+  assert.ok(values.includes('Redshift'));
+  assert.ok(values.includes('Snowflake'));
+  assert.ok(values.includes('Teatro Aberto')); // multi-word proper noun kept as one phrase
+  assert.ok(values.includes('45s'));
+});
+
+test('properNouns ignores sentence-initial capitals', () => {
+  const values = protectedSpans('Write a post. The team uses Snowflake.').map((s) => s.span);
+  assert.ok(!values.includes('Write'));
+  assert.ok(!values.includes('The'));
+  assert.ok(values.includes('Snowflake'));
+});
+
+test('numberTokens ignores digits that are part of a token', () => {
+  assert.deepEqual([...numberTokens('a 2D representation')], []);
+  assert.deepEqual([...numberTokens('3D render')], []);
+  assert.ok([...numberTokens('from 45s to 3s')].includes('45')); // real units still count
+});
+
+test('noInvention no longer false-positives on 2D but still catches real inventions', () => {
+  assert.equal(noInvention('make a poster', '', 'A 2D poster design.').passed, true);
+  assert.equal(noInvention('make a social post', '', 'Under 140 characters for Twitter.').passed, false);
+});
+
+test('contentCoverage catches a wholesale dropped requirement', () => {
+  const src = 'write a blog post for data engineers about the migration';
+  const kept = '# Task\nWrite a blog post about the migration.\n# Context\n- Audience: data engineers';
+  const dropped = '# Task\nWrite a blog post about the migration.\n# Context\n- Audience: general readers';
+  assert.equal(contentCoverage(src, kept, 0.85).passed, true);
+  assert.equal(contentCoverage(src, dropped, 0.85).passed, false);
+  assert.ok(contentCoverage(src, dropped, 0.85).missing.includes('engineers'));
 });
