@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "build": { "env": { "OPTIMIZER_FORCE_HEURISTIC": "1" } },
+  "functions": {
+    "api/*.mjs": { "runtime": "@vercel/node@5.3.28", "maxDuration": 60 }
+  },
+  "env": { "OPTIMIZER_FORCE_HEURISTIC": "1" }
+}

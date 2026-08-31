@@ -1,6 +1,6 @@
 # Intact - adversarial (negative control) evidence
 
-- Date: 2026-08-31T12:42:38.029Z
+- Date: 2026-08-31T12:49:16.759Z
 - Purpose: prove the fidelity checks actually FIRE. A check that never fails is
   indistinguishable from a check that works.
 - Method: deterministic only (no LLM). Each case is a deliberately corrupted

@@ -48,6 +48,8 @@
   #verdict.bad { display: block; background: color-mix(in srgb, var(--bad) 14%, transparent); color: var(--bad); }
   #meta { color: var(--muted); font-size: 12px; margin-top: 8px; }
   .spinner { display: none; color: var(--muted); font-size: 13px; margin-top: 10px; }
+  .note { color: var(--muted); font-size: 12px; line-height: 1.45; margin: 12px 0 0; padding: 10px; border: 1px dashed var(--border); border-radius: 8px; }
+  .note code { font-family: var(--mono); }
 </style>
 </head>
 <body>
@@ -71,6 +73,9 @@
     <textarea id="context" placeholder="Stack, audience, links - anything the optimizer may use"></textarea>
     <button id="go">Optimize</button>
     <div class="spinner" id="spin">Optimizing locally - extract, synthesize, verify...</div>
+    <p id="enginenote" hidden class="note">This build runs the <strong>deterministic engine</strong>: it restructures your own
+    sentences and runs every fidelity check, so it can never invent content - but it does not
+    rephrase. Run it locally with <code>ollama serve</code> for the LLM-synthesis mode.</p>
   </section>
   <section class="card">
     <div id="verdict"></div>
@@ -94,7 +99,10 @@ async function health() {
     const h = await (await fetch('/api/health')).json();
     const el = $('mode');
     if (h.ollama) { el.textContent = 'local LLM: ' + h.defaultModel; el.classList.add('llm'); }
-    else { el.textContent = 'heuristic fallback (Ollama offline)'; }
+    else {
+      el.textContent = 'deterministic engine';
+      $('enginenote').hidden = false;
+    }
   } catch { $('mode').textContent = 'server unreachable'; }
 }
 health();

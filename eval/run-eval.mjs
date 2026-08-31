@@ -5,7 +5,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { optimize } from '../lib/pipeline.mjs';
 import { heuristicOptimize } from '../lib/heuristic.mjs';
 import { protectedSpans } from '../lib/extract.mjs';
-import { spanRetention, noInvention, languageMatch } from '../lib/verify.mjs';
+import { spanRetention, noInvention, languageMatch, contentCoverage } from '../lib/verify.mjs';
 import { DEFAULT_MODEL } from '../lib/ollama.mjs';
 
 const fixturesPath = new URL('./fixtures.json', import.meta.url);
@@ -29,6 +29,7 @@ for (const f of fixtures) {
           spanRetention(spans, h.optimized),
           noInvention(f.input, '', h.optimized),
           languageMatch(f.input, h.optimized),
+          { ...contentCoverage(f.input, h.optimized), advisory: true },
         ],
         judge: null,
       },
@@ -59,6 +60,9 @@ for (const f of fixtures) {
     languagePass: byName.language_match?.passed ?? null,
     structurePass: byName.structure?.passed ?? null,
     judgePass: result.fidelity.judge ? result.fidelity.judge.passed : null,
+    coverage: byName.content_coverage ? byName.content_coverage.ratio : null,
+    coveragePass: byName.content_coverage ? byName.content_coverage.passed : null,
+    level: result.fidelity.level || (result.fidelity.passed ? 'verified' : 'failed'),
     repaired: result.repaired,
     overall: result.fidelity.passed,
     secs,
@@ -97,14 +101,18 @@ const md = `# Intact - eval evidence
 | Language preserved | ${pct((r) => r.languagePass)} |
 | Required structure present | ${pct((r) => r.structurePass)} |
 | Meaning judge (LLM) verdict "preserved" | ${pct((r) => r.judgePass)} |
+| Content coverage above ${Math.round(100 * 0.85)}% (advisory) | ${pct((r) => r.coveragePass)} |
+| Verdict "verified" (every check clean) | ${rows.filter((r) => r.level === 'verified').length}/${rows.length} |
+| Verdict "review" (literals clean, soft signal flagged) | ${rows.filter((r) => r.level === 'review').length}/${rows.length} |
+| Verdict "failed" (a blocking check fired) | ${rows.filter((r) => r.level === 'failed').length}/${rows.length} |
 | Overall fidelity (all checks) | ${pct((r) => r.overall)} |
 | Runs needing the repair round | ${rows.filter((r) => r.repaired).length}/${rows.length} |
 
 ## Per fixture
 
-| id | category | spans kept | invention | language | structure | judge | overall | time | open Qs | assumptions |
-|---|---|---|---|---|---|---|---|---|---|---|
-${rows.map((r) => `| ${r.id} | ${r.category} | ${r.spans} | ${b(r.inventionPass)} | ${b(r.languagePass)} | ${b(r.structurePass)} | ${b(r.judgePass)} | ${b(r.overall)}${r.repaired ? ' (repaired)' : ''} | ${r.secs}s | ${r.openQuestions} | ${r.assumptions} |`).join('\n')}
+| id | category | spans kept | invention | language | structure | coverage | judge | verdict | time | open Qs | assumptions |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+${rows.map((r) => `| ${r.id} | ${r.category} | ${r.spans} | ${b(r.inventionPass)} | ${b(r.languagePass)} | ${b(r.structurePass)} | ${r.coverage === null ? 'n/a' : r.coverage} | ${b(r.judgePass)} | ${r.level}${r.repaired ? ' (repaired)' : ''} | ${r.secs}s | ${r.openQuestions} | ${r.assumptions} |`).join('\n')}
 
 ${failDetails.length ? `## Failure details\n\n${failDetails.map((d) => `### ${d.id}\n- failed checks: ${d.checks.map((c) => c.name + ' ' + JSON.stringify({ ...c, name: undefined })).join('; ') || 'none'}\n- judge: ${d.judge ? JSON.stringify({ added: d.judge.added, dropped: d.judge.dropped, altered: d.judge.altered }) : 'passed'}\n\n<details><summary>output</summary>\n\n\`\`\`\n${d.optimized}\n\`\`\`\n</details>`).join('\n\n')}` : 'All fixtures passed.'}
 
@@ -112,7 +120,13 @@ ${failDetails.length ? `## Failure details\n\n${failDetails.map((d) => `### ${d.
 
 - span retention / no-invention / language are DETERMINISTIC - they cannot hallucinate.
 - the judge is a local LLM prompted to refute; a FAIL means "review", not proven alteration.
-- "repaired" means the first draft failed a check and one automatic repair round ran.
+- "repaired" means the first draft failed a check and the repair round produced a
+  better draft (the pipeline keeps whichever of the two violates less).
+- content_coverage is ADVISORY: it can lower a verdict to "review" but never to
+  "failed", because legitimate rephrasing can drop a source word without
+  changing meaning.
+- verdicts: verified = every check clean; review = literals clean but a soft
+  signal fired; failed = a blocking deterministic check fired.
 `;
 
 const outName = heuristicOnly ? './EVIDENCE-heuristic.md' : './EVIDENCE.md';
