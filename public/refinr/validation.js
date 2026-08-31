@@ -1,7 +1,7 @@
 const CHECKS = ['intentCheck', 'constraintCheck', 'openCheck'];
 
 export function canApply(root, state) {
-  return Boolean(state.optimization?.optimized) && state.facts.length > 0 && CHECKS.every((id) => root.getElementById(id).checked);
+  return !state.optimizing && Boolean(state.optimization?.optimized) && state.facts.length > 0 && CHECKS.every((id) => root.getElementById(id).checked);
 }
 
 export function clearChecks(root) {

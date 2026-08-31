@@ -16,6 +16,8 @@ function reset() {
   $('empty').hidden = false;
   $('conversation').hidden = true;
   $('roughPrompt').value = '';
+  $('reply').value = '';
+  $('composer').hidden = true;
   $('apply').classList.remove('applied');
   $('apply').textContent = 'Apply confirmed answers';
   root.querySelectorAll('.option').forEach((button) => button.removeAttribute('aria-pressed'));
@@ -25,28 +27,75 @@ function reset() {
   render(root, state);
 }
 
-$('start').addEventListener('click', () => {
-  const raw = $('roughPrompt').value.trim();
-  if (raw) root.querySelector('.message.user .bubble p').textContent = raw;
+function runOptimization(raw) {
+  state.rawPrompt = raw;
   state.sourceFacts = deriveSourceFacts(raw);
   state.started = true;
   state.optimizing = true;
+  state.optimization = null;
   state.optimizationError = '';
   $('empty').hidden = true;
   $('conversation').hidden = false;
-  setActiveQuestion(root, 'question1');
+  $('composer').hidden = false;
   $('result').hidden = true;
+  setActiveQuestion(root, 'question1');
   render(root, state);
-  optimizePrompt(raw).then((result) => {
+  return optimizePrompt(raw).then((result) => {
     state.optimization = result;
     state.optimizing = false;
+    $('result').hidden = false;
     render(root, state);
   }).catch((error) => {
     state.optimization = null;
     state.optimizing = false;
     state.optimizationError = error.message;
+    $('result').hidden = false;
     render(root, state);
   });
+}
+
+$('start').addEventListener('click', () => {
+  const raw = $('roughPrompt').value.trim();
+  if (!raw) {
+    $('roughPrompt').focus();
+    return;
+  }
+  if (raw) root.querySelector('.message.user .bubble p').textContent = raw;
+  runOptimization(raw);
+});
+
+$('send').addEventListener('click', () => {
+  const raw = $('reply').value.trim();
+  if (!raw || state.optimizing) return;
+  state.facts.length = 0;
+  clearChecks(root);
+  state.applied = false;
+  $('apply').classList.remove('applied');
+  $('apply').textContent = 'Apply confirmed answers';
+  root.querySelectorAll('.option').forEach((button) => {
+    button.removeAttribute('aria-pressed');
+    button.disabled = false;
+  });
+  root.querySelector('.message.user .bubble p').textContent = raw;
+  $('reply').value = '';
+  runOptimization(raw);
+});
+
+$('reply').addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    $('send').click();
+  }
+});
+
+// The plus control adds an explicit context prefix to the next message; it is
+// deliberately functional so the composer never contains a decorative CTA.
+$('contextAction').addEventListener('click', () => {
+  const reply = $('reply');
+  if (!reply.value.trim()) reply.value = 'Context: ';
+  else if (!reply.value.trimStart().startsWith('Context:')) reply.value = `Context: ${reply.value}`;
+  reply.focus();
+  reply.setSelectionRange(reply.value.length, reply.value.length);
 });
 
 root.querySelectorAll('.option').forEach((button) => button.addEventListener('click', () => {
@@ -70,12 +119,26 @@ root.querySelectorAll('.option').forEach((button) => button.addEventListener('cl
 ['intentCheck', 'constraintCheck', 'openCheck'].forEach((id) => $(id).addEventListener('change', () => render(root, state)));
 $('apply').addEventListener('click', () => {
   if ($('apply').disabled) return;
-  state.applied = true;
+  const confirmed = state.facts.map(([key, value]) => `- ${key}: ${value}`).join('\n');
+  state.optimizing = true;
+  state.applied = false;
   $('result').hidden = false;
-  $('resultText').textContent = 'Applied in demo: confirmed choices are now the optimizer source material. Next screen would show the verified structured prompt and diff.';
-  $('apply').textContent = 'Applied · open verified result';
-  $('apply').classList.add('applied');
-  $('stage').textContent = 'Confirmed source material applied · verification next';
+  $('stage').textContent = 'Applying confirmed source material · verifying result';
+  render(root, state);
+  optimizePrompt(`${state.rawPrompt}\n\nConfirmed source material:\n${confirmed}`).then((result) => {
+    state.optimization = result;
+    state.optimizing = false;
+    state.applied = true;
+    $('apply').textContent = 'Applied · verified result';
+    $('apply').classList.add('applied');
+    $('stage').textContent = 'Confirmed source material applied · verification complete';
+    render(root, state);
+  }).catch((error) => {
+    state.optimizing = false;
+    state.optimizationError = error.message;
+    $('stage').textContent = 'Verification failed · review the optimizer error';
+    render(root, state);
+  });
 });
 
 const drawer = wireDrawer(root);

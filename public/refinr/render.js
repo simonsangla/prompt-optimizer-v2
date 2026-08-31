@@ -15,7 +15,9 @@ export function render(root, state) {
   const count = state.facts.length;
   root.getElementById('status').textContent = `${count} confirmed · ${QUESTION_COUNT - count} open`;
   root.getElementById('mobileStatus').textContent = `${count} of ${QUESTION_COUNT} confirmed`;
-  root.getElementById('stage').textContent = count < QUESTION_COUNT ? `Question ${count + 1} of ${QUESTION_COUNT} · confirmation required` : 'Ready for human review';
+  root.getElementById('stage').textContent = state.applied
+    ? 'Confirmed source material applied · verification complete'
+    : count < QUESTION_COUNT ? `Question ${count + 1} of ${QUESTION_COUNT} · confirmation required` : 'Ready for human review';
   root.getElementById('facts').innerHTML = state.sourceFacts.map(([key, value]) => `<div class="fact"><b>${key}</b><span>${value}</span></div>`).join('') + state.facts.map(([key, value]) => `<div class="fact"><b>${key}</b><span>${value}</span></div>`).join('') || '<div class="fact"><b>No source constraints detected</b><span>Nothing is added without confirmation.</span></div>';
   const primary = state.facts.find(([key]) => key === 'Primary action');
   const visual = state.facts.find(([key]) => key === 'Visual direction');
