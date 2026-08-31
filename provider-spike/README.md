@@ -10,3 +10,12 @@ npm run dev
 ```
 
 Open `http://localhost:5174`. Enter a rough prompt, choose the first model-generated answer, and verify that the next question is generated from the full transcript. The browser calls `POST /api/refine/question`; the final optimization kernel remains `lib/pipeline.mjs` and is intentionally not migrated in this spike.
+
+Backend-first checks:
+
+```bash
+npm run test:e2e                 # deterministic heuristic contract test
+E2E_LIVE=1 npm run test:e2e      # real Ollama question + optimization path
+npm test                         # unit contract tests
+npm run build                    # provider UI build
+```
