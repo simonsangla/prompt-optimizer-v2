@@ -1,0 +1,15 @@
+:root { font-family: ui-sans-serif, system-ui, sans-serif; color: #1a1a18; background: #f0ece0; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+.shell { min-height: 100vh; max-width: 780px; margin: auto; padding: 28px 20px 60px; }
+header { display: flex; justify-content: space-between; border-bottom: 1px solid #ded8ca; padding-bottom: 18px; }
+header strong { font: 700 21px Georgia, serif; } header span, .intro { color: #77736a; font-size: 13px; }
+.thread { max-width: 680px; margin: 12vh auto 0; } h1 { font: 500 42px Georgia, serif; margin: 0 0 12px; }
+.intro { max-width: 540px; line-height: 1.6; }
+.start { display: grid; gap: 12px; margin-top: 24px; } textarea, input { font: inherit; border: 1px solid #ded8ca; border-radius: 10px; padding: 13px; background: #fffdf8; } textarea { min-height: 100px; resize: vertical; }
+button { border: 0; border-radius: 9px; background: #c96442; color: #fff; padding: 11px 15px; font-weight: 750; cursor: pointer; } button:disabled { opacity: .55; cursor: wait; }
+.turn { display: flex; gap: 10px; margin: 18px 0; } .turn b { color: #77736a; font-size: 11px; text-transform: uppercase; letter-spacing: .1em; } .turn span { white-space: pre-wrap; }
+.question-card { background: #fffdf8; border-left: 3px solid #c96442; padding: 18px; margin-top: 24px; } .question-card h2 { font: 600 24px Georgia, serif; }
+.question-label { color: #3d715f; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; font-weight: 800; } .options { display: flex; flex-wrap: wrap; gap: 8px; } .question-card form { display: flex; gap: 8px; margin-top: 14px; } .question-card input { flex: 1; }
+.error { color: #984e38; margin-top: 20px; }
+@media (max-width: 600px) { header span { display: none; } h1 { font-size: 34px; } .thread { margin-top: 8vh; } .question-card form { flex-direction: column; } }

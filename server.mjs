@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { optimize } from './lib/pipeline.mjs';
 import { ollamaHealth } from './lib/ollama.mjs';
+import { askRefinementQuestion } from './lib/questioner.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const HOST = process.env.HOST || '0.0.0.0';
@@ -63,6 +64,19 @@ const server = http.createServer(async (req, res) => {
         model: body.model ? String(body.model) : undefined,
       });
       result.elapsedMs = Date.now() - started;
+      return json(res, 200, result);
+    }
+
+    if (url.pathname === '/api/refine/question' && req.method === 'POST') {
+      const raw = await readBody(req);
+      let body;
+      try { body = JSON.parse(raw); } catch { return json(res, 400, { error: 'invalid JSON body' }); }
+      const prompt = String(body.prompt || '').trim();
+      if (!prompt) return json(res, 400, { error: 'prompt is required' });
+      if (prompt.length > 20000) return json(res, 400, { error: 'prompt too long (20k char max)' });
+      const turns = body.turns || [];
+      if (!Array.isArray(turns) || turns.length > 12) return json(res, 400, { error: 'turns must be an array of at most 12 items' });
+      const result = await askRefinementQuestion(prompt, turns, { maxQuestions: Number(body.maxQuestions || 3) });
       return json(res, 200, result);
     }
 
