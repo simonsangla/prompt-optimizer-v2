@@ -34,7 +34,7 @@ rearranges source sentences - meaning-safe by construction.
 
 ## Live deployment
 
-- Deterministic edition (Vercel preview): https://intact-prompt-optimizer-kdapaawqw-simonsanglas-projects.vercel.app
+- Production: https://intact-prompt-optimizer.vercel.app
 - Vercel has no Ollama, so the deployed build runs the deterministic engine:
   it restructures your own sentences and runs every fidelity check, but does
   not rephrase. The UI states which engine is live. LLM synthesis is local-only.
