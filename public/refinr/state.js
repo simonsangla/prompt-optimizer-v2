@@ -1,7 +1,7 @@
 export const QUESTION_COUNT = 3;
 
 export function createState() {
-  return { facts: [], sourceFacts: [], started: false, applied: false };
+  return { facts: [], sourceFacts: [], started: false, applied: false, optimizing: false, optimization: null, optimizationError: '' };
 }
 
 export function resetState(state) {
@@ -9,4 +9,7 @@ export function resetState(state) {
   state.sourceFacts.length = 0;
   state.started = false;
   state.applied = false;
+  state.optimizing = false;
+  state.optimization = null;
+  state.optimizationError = '';
 }

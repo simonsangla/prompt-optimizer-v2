@@ -3,7 +3,8 @@ import { deriveSourceFacts, recordAnswer, nextQuestion } from './questions.js';
 import { clearChecks } from './validation.js';
 import { wireNavigation } from './navigation.js';
 import { wireDrawer } from './drawer.js';
-import { render } from './render.js';
+import { render, setActiveQuestion } from './render.js';
+import { optimizePrompt } from './optimizer.js';
 
 const root = document;
 const state = createState();
@@ -19,7 +20,8 @@ function reset() {
   $('apply').textContent = 'Apply confirmed answers';
   root.querySelectorAll('.option').forEach((button) => button.removeAttribute('aria-pressed'));
   root.querySelectorAll('.option').forEach((button) => { button.disabled = false; });
-  ['question2', 'question3', 'result'].forEach((id) => { $(id).hidden = true; });
+  setActiveQuestion(root, null);
+  $('result').hidden = true;
   render(root, state);
 }
 
@@ -28,10 +30,23 @@ $('start').addEventListener('click', () => {
   if (raw) root.querySelector('.message.user .bubble p').textContent = raw;
   state.sourceFacts = deriveSourceFacts(raw);
   state.started = true;
+  state.optimizing = true;
+  state.optimizationError = '';
   $('empty').hidden = true;
   $('conversation').hidden = false;
-  ['question2', 'question3', 'result'].forEach((id) => { $(id).hidden = true; });
+  setActiveQuestion(root, 'question1');
+  $('result').hidden = true;
   render(root, state);
+  optimizePrompt(raw).then((result) => {
+    state.optimization = result;
+    state.optimizing = false;
+    render(root, state);
+  }).catch((error) => {
+    state.optimization = null;
+    state.optimizing = false;
+    state.optimizationError = error.message;
+    render(root, state);
+  });
 });
 
 root.querySelectorAll('.option').forEach((button) => button.addEventListener('click', () => {
@@ -41,8 +56,11 @@ root.querySelectorAll('.option').forEach((button) => button.addEventListener('cl
   card.querySelectorAll('.option').forEach((choice) => { choice.disabled = true; });
   const key = recordAnswer(state, button);
   const next = nextQuestion(key);
-  if (next) $(next).hidden = false;
-  else $('result').hidden = false;
+  if (next) setActiveQuestion(root, next);
+  else {
+    setActiveQuestion(root, null);
+    $('result').hidden = false;
+  }
   card.querySelector('.question-card').style.opacity = '.72';
   state.applied = false;
   $('apply').classList.remove('applied');
