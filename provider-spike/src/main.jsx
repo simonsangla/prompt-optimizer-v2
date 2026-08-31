@@ -33,7 +33,7 @@ function App() {
   async function start() {
     const text = prompt.trim();
     if (!text || busy) return;
-    setBusy(true); setError(''); setTurns([]); setResult(null); setChecks({ intent: false, fidelity: false, open: false });
+    setBusy(true); setError(''); setTurns([{ role: 'user', type: 'prompt', text }]); setResult(null); setChecks({ intent: false, fidelity: false, open: false });
     try {
       const next = await refinr.ask(text, []);
       setQuestion(next);
