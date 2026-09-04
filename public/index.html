@@ -55,7 +55,7 @@
 <body>
 <header>
   <h1>Intact</h1>
-  <span class="sub">Prompt Optimizer v2 - your meaning, verified</span>
+  <span class="sub">Prompt Optimizer v2 - your meaning, checked</span>
   <span id="mode">checking engine...</span>
 </header>
 <main>
@@ -160,9 +160,10 @@ $('go').addEventListener('click', async () => {
     $('result').textContent = data.optimized;
     $('copy').hidden = false;
     const v = $('verdict');
-    const level = data.fidelity.level || (data.fidelity.passed ? 'verified' : 'failed');
-    if (level === 'verified') { v.textContent = 'Meaning preserved - all fidelity checks passed'; v.className = 'ok'; }
-    else if (level === 'review') { v.textContent = 'Literals verified - the meaning judge suggests a review (see below)'; v.className = 'warn'; }
+    const level = data.fidelity.level || (data.fidelity.passed ? 'checked' : 'failed');
+    if (level === 'checked') { v.textContent = 'Checked - every literal survived and nothing was invented (no meaning judge ran)'; v.className = 'ok'; }
+    else if (level === 'verified') { v.textContent = 'Verified - literals checked and the meaning judge agreed'; v.className = 'ok'; }
+    else if (level === 'review') { v.textContent = 'Review - a check or the meaning judge flagged something (see below)'; v.className = 'warn'; }
     else { v.textContent = 'Fidelity check failed - do not trust this rewrite blindly'; v.className = 'bad'; }
     $('badges').innerHTML = `<span class="pill">${data.mode}${data.model ? ': ' + data.model : ''}</span>` + (data.repaired ? '<span class="pill">auto-repaired</span>' : '');
     $('checks').innerHTML = data.fidelity.checks.map(renderCheck).join('') + renderJudge(data.fidelity.judge);

@@ -91,7 +91,7 @@ After any production deploy, check `/api/health` returns `"forced": true`, then 
 
 ## Known inconsistency (closed by K0, 2026-09-04)
 
-The heuristic branch used to compute `passed`/`level` by check *name* (`c.name !== 'structure'`) instead of the `advisory` flag. `computeLevel()` in `lib/pipeline.mjs` now decides every level from the flag; the heuristic branch still keeps `structure` out of its verdict on purpose (a missing section is honest there), and `fidelity.basis` states whether the judge counted.
+The heuristic branch used to compute `passed`/`level` by check *name* (`c.name !== 'structure'`) instead of the `advisory` flag. `computeLevel()` in `lib/pipeline.mjs` now decides every level from the flag; the heuristic branch still keeps `structure` out of its verdict on purpose (a missing section is honest there), and `fidelity.basis` states whether the judge counted. K4: the level vocabulary is `checked` / `review` / `failed`; `verified` appears only when a judge actually voted (`OPTIMIZER_JUDGE=blocking`). Literal checks prove spans survived and nothing was invented - not that meaning was preserved.
 
 ## Governance
 
