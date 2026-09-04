@@ -61,6 +61,7 @@ const server = http.createServer(async (req, res) => {
         target: String(body.target || 'chat'),
         context: String(body.context || '').trim(),
         model: body.model ? String(body.model) : undefined,
+        ...(body.judge ? { judge: String(body.judge) } : {}),
       });
       result.elapsedMs = Date.now() - started;
       return json(res, 200, result);
@@ -80,7 +81,7 @@ const server = http.createServer(async (req, res) => {
       return res.end('not found');
     }
   } catch (err) {
-    return json(res, 500, { error: String(err.message || err) });
+    return json(res, err.status || 500, { error: String(err.message || err) });
   }
 });
 

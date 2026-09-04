@@ -26,7 +26,7 @@ node --test --test-name-pattern "contentCoverage catches" test/unit.test.mjs
 
 `eval/adversarial.mjs` has no npm script yet; invoke it directly.
 
-Environment: `OPTIMIZER_MODEL`, `OLLAMA_URL` (default `http://localhost:11434`), `OPTIMIZER_FORCE_HEURISTIC=1` (skip the Ollama probe entirely).
+Environment: `OPTIMIZER_MODEL`, `OLLAMA_URL` (default `http://localhost:11434`), `OPTIMIZER_FORCE_HEURISTIC=1` (skip the Ollama probe entirely), `OPTIMIZER_JUDGE=off|advisory|blocking` (default `off` since K0, mission-os#617: the judge is off the critical path; `advisory` attaches it after the verdict, `blocking` is the pre-K0 loop), `OPTIMIZER_MAX_CHARS` (default 12000, input+context; over budget -> `InputTooLarge`, HTTP 413, never silent truncation), `OPTIMIZER_NUM_CTX` (default 8192), `OPTIMIZER_NUM_PREDICT` (default 1000). Per request, `judge` can also be passed in the POST body.
 
 **Always set `OPTIMIZER_MODEL` for LLM mode.** `DEFAULT_MODEL` in `lib/ollama.mjs` is `llama3.1:8b`, and that manifest returns `"does not support chat"` on current Ollama — so the built-in default does not work. `qwen2.5-coder:7b` fails the same way; `llama3.2:3b` and `gemma2:2b` work. Every verified run used:
 
@@ -58,7 +58,7 @@ Checks are either **blocking** or **advisory** (`advisory: true`). Three levels:
 
 **An advisory check can never produce `failed`, and the LLM judge can never turn a blocking failure green.** The judge is a small local model and is noisy; it exists only to escalate to `review`. The deterministic checks are the actual guarantee. Preserve this asymmetry — it is the whole trust model.
 
-`content_coverage` is advisory (heuristic proxy, English-only, threshold 0.85 calibrated against measured data — not guessed). `structure` is additionally marked advisory in heuristic mode, because that engine only emits a section when the source has content for it.
+`content_coverage` is advisory (heuristic proxy, English-only, threshold 0.85 calibrated against measured data — not guessed). `section_filler` (K1, mission-os#617) is blocking: a `Tone|Audience|Length|Style|Format|Structure|Background|Exclusions:` line in a main section must share a content term with source+context or carry an `(assumption)` tag; hedge values (`not specified`, `likely`, `unknown`) always fail. `structure` is additionally marked advisory in heuristic mode, because that engine only emits a section when the source has content for it.
 
 ### Repair is best-of-two, not blind retry
 
@@ -89,9 +89,9 @@ After any production deploy, check `/api/health` returns `"forced": true`, then 
 
 `eval/adversarial.mjs` rewrites its own timestamp on every run, so that file shows as modified after each invocation even when nothing changed.
 
-## Known inconsistency
+## Known inconsistency (closed by K0, 2026-09-04)
 
-In `lib/pipeline.mjs`, the heuristic branch computes `passed`/`level` by filtering on the check *name* (`c.name !== 'structure'`) rather than on the `advisory` flag it just set. A failing advisory `content_coverage` would therefore read as `failed` in heuristic mode, where the LLM branch would call it `review`. Practically unreachable today (the heuristic reuses source wording, so coverage sits at ~1.0), but fix it by filtering on `advisory` if you touch that branch.
+The heuristic branch used to compute `passed`/`level` by check *name* (`c.name !== 'structure'`) instead of the `advisory` flag. `computeLevel()` in `lib/pipeline.mjs` now decides every level from the flag; the heuristic branch still keeps `structure` out of its verdict on purpose (a missing section is honest there), and `fidelity.basis` states whether the judge counted.
 
 ## Governance
 
