@@ -53,12 +53,16 @@ Fixtures: the ${cases.length} prompts that broke the kernel on 2026-09-04
 (mission-os#617) - garbled, multilingual, very short, very long, and meaning
 traps - each pinned to the extraction and check outcomes measured after K0-K6.
 
-| fixture | category | spans | negated | extract | result |
-|---|---|---|---|---|---|
-${rows.map((r) => `| ${r.id} | ${r.category} | ${r.spans} | ${r.negated} | ${r.extractMs}ms | ${r.ok ? 'ok' : 'FAIL'} |`).join('\n')}
+| fixture | category | spans | negated | result |
+|---|---|---|---|---|
+${rows.map((r) => `| ${r.id} | ${r.category} | ${r.spans} | ${r.negated} | ${r.ok ? 'ok' : 'FAIL'} |`).join('\n')}
 
 **${rows.filter((r) => r.ok).length}/${rows.length} fixtures hold.**
 ${failures.length ? '\n## Regressions\n' + failures.map((f) => `- **${f.id}**: ${f.problems.join('; ')}`).join('\n') : ''}
+
+Timings are asserted (\`extractionUnderMs\`) but not printed: a report that
+carries wall-clock numbers changes on every run, so the gate would dirty the
+working tree each time it passed and nobody would run it twice.
 
 These are deterministic-layer expectations only. LLM-mode behaviour is
 nondeterministic and is measured separately by \`node eval/run-eval.mjs\`,
