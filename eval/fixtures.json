@@ -58,5 +58,281 @@
     "category": "coding, scope-limits",
     "target": "claude-code",
     "input": "refactor the payment_service module to use async await instead of callbacks, keep the public API identical, all 47 existing tests must still pass, do not upgrade any dependencies"
+  },
+  {
+    "id": "stress-typos",
+    "category": "stress, garbled",
+    "target": "chat",
+    "input": "wrte me a blogpost abt our q3 reslts,we grew 40% but dont mentoin churn wich was 12% formt as markdwn",
+    "expect": {
+      "spansInclude": [
+        "40%",
+        "12%"
+      ],
+      "script": "latin",
+      "note": "the negation cue is misspelled (\"dont mentoin\"), so 12% is NOT negated - a measured limit of the cue list, pinned here so a future fix is visible as a change"
+    }
+  },
+  {
+    "id": "stress-chat-noise",
+    "category": "stress, garbled",
+    "target": "chat",
+    "input": "ok so like need a LinkedIn post about MetricPilot launch, keep it under 120 words, tag @simonsangla, no hashtags pls",
+    "expect": {
+      "spansInclude": [
+        "MetricPilot",
+        "120 words"
+      ],
+      "script": "latin"
+    }
+  },
+  {
+    "id": "stress-json-blob",
+    "category": "stress, garbled",
+    "target": "chat",
+    "input": "{\"task\":\"summarize\",\"audience\":\"data engineers\",\"max_words\":150,\"source\":\"https://docs.getdbt.com/reference/node-selection\"}",
+    "expect": {
+      "spansInclude": [
+        "https://docs.getdbt.com/reference/node-selection",
+        "max_words"
+      ],
+      "script": "latin"
+    }
+  },
+  {
+    "id": "stress-fr-short",
+    "category": "stress, multilingual",
+    "target": "chat",
+    "input": "Écris un poème sur Lisbonne avec le tram.",
+    "expect": {
+      "spansInclude": [
+        "Lisbonne"
+      ],
+      "language": "fr",
+      "script": "latin"
+    }
+  },
+  {
+    "id": "stress-pt-short",
+    "category": "stress, multilingual",
+    "target": "chat",
+    "input": "Faz um resumo da reunião com o Hubert em 5 pontos, sem jargão.",
+    "expect": {
+      "spansInclude": [
+        "Hubert",
+        "5"
+      ],
+      "script": "latin"
+    }
+  },
+  {
+    "id": "stress-mix-fr-en-pt",
+    "category": "stress, multilingual",
+    "target": "chat",
+    "input": "Faz um resumo of the Viaposte mission pour Hubert Grégoire, em português, avec les chiffres: 600 EUR/jour, 12 jours, Sónia Pinto fait la facture.",
+    "expect": {
+      "spansInclude": [
+        "Hubert Grégoire",
+        "Sónia Pinto",
+        "600 EUR",
+        "Viaposte"
+      ],
+      "script": "latin"
+    }
+  },
+  {
+    "id": "stress-japanese",
+    "category": "stress, multilingual",
+    "target": "chat",
+    "input": "東京の観光スポットを3つ、それぞれ50字以内で紹介してください。",
+    "expect": {
+      "script": "han",
+      "translationCaught": "# Task\nIntroduce three Tokyo tourist spots, 50 characters each."
+    }
+  },
+  {
+    "id": "stress-en-with-as",
+    "category": "stress, multilingual",
+    "target": "chat",
+    "input": "Use as many examples as you can, as long as each one is as short as the previous one.",
+    "expect": {
+      "script": "latin",
+      "languageMatchOn": "# Task\nUse as many examples as possible, each as short as the previous one."
+    }
+  },
+  {
+    "id": "stress-one-word",
+    "category": "stress, very short",
+    "target": "chat",
+    "input": "Lisbon",
+    "expect": {
+      "spansInclude": [],
+      "script": "latin"
+    }
+  },
+  {
+    "id": "stress-punctuation-only",
+    "category": "stress, very short",
+    "target": "chat",
+    "input": "?!?",
+    "expect": {
+      "spansInclude": [],
+      "script": "unknown"
+    }
+  },
+  {
+    "id": "stress-lone-url",
+    "category": "stress, very short",
+    "target": "chat",
+    "input": "https://docs.getdbt.com/reference/node-selection",
+    "expect": {
+      "spansInclude": [
+        "https://docs.getdbt.com/reference/node-selection"
+      ]
+    }
+  },
+  {
+    "id": "stress-negation",
+    "category": "stress, meaning trap",
+    "target": "chat",
+    "input": "Write a blog post about our Q3 results, we grew 40%, but do not mention churn, which was 12%, format as markdown.",
+    "expect": {
+      "spansInclude": [
+        "40%"
+      ],
+      "spansNegated": [
+        "12%"
+      ],
+      "retentionPassesOn": "# Task\nWrite a blog post about our Q3 results.\n# Constraints\n- We grew 40%.\n- Do not mention churn.",
+      "note": "\"churn\" is a common noun and never an extracted span; only the number inside the negation scope is exempted"
+    }
+  },
+  {
+    "id": "stress-relative-clause",
+    "category": "stress, meaning trap",
+    "target": "chat",
+    "input": "Email the vendor who missed the deadline, not the one who delivered early, and cc Andre.",
+    "expect": {
+      "spansInclude": [
+        "Andre"
+      ],
+      "script": "latin"
+    }
+  },
+  {
+    "id": "stress-only-scope",
+    "category": "stress, meaning trap",
+    "target": "claude-code",
+    "input": "Only refactor the parser; do not touch the tests or the CLI.",
+    "expect": {
+      "coverageFailsOn": "# Goal\nRefactor the parser.\n# Open questions\n- Should tests be touched?\n- What is the CLI?"
+    }
+  },
+  {
+    "id": "stress-number-noun",
+    "category": "stress, meaning trap",
+    "target": "chat",
+    "input": "Give me 3 sections of 200 words each, not 200 sections.",
+    "expect": {
+      "spansInclude": [
+        "3",
+        "200"
+      ],
+      "spansExclude": [
+        "3 sec",
+        "200 sec"
+      ]
+    }
+  },
+  {
+    "id": "stress-deadline-budget",
+    "category": "stress, meaning trap",
+    "target": "chat",
+    "input": "Deliver the deck by Friday 2026-09-11 at 14h30 CET, budget EUR 600, no more than 12 slides.",
+    "expect": {
+      "spansInclude": [
+        "600",
+        "12"
+      ],
+      "script": "latin"
+    }
+  },
+  {
+    "id": "stress-accented-names",
+    "category": "stress, extraction",
+    "target": "chat",
+    "input": "Envoie le devis a Hubert Grégoire et a Sónia Pinto pour São Paulo, montant 600 EUR.",
+    "expect": {
+      "spansInclude": [
+        "Hubert Grégoire",
+        "Sónia Pinto",
+        "São Paulo",
+        "600 EUR"
+      ]
+    }
+  },
+  {
+    "id": "stress-paths-and-quotes",
+    "category": "stress, extraction",
+    "target": "claude-code",
+    "input": "Edit lib/pipeline.mjs and src/app.ts, keep the tagline “move fast, ship daily”, run ./scripts/run.sh.",
+    "expect": {
+      "spansInclude": [
+        "lib/pipeline.mjs",
+        "src/app.ts",
+        "move fast, ship daily",
+        "./scripts/run.sh"
+      ]
+    }
+  },
+  {
+    "id": "stress-substring-trap",
+    "category": "stress, extraction",
+    "target": "chat",
+    "input": "Send it to Paris by 5.",
+    "expect": {
+      "spansInclude": [
+        "Paris",
+        "5"
+      ],
+      "retentionFailsOn": "# Task\nA comparison of 2025."
+    }
+  },
+  {
+    "id": "stress-fr-negation",
+    "category": "stress, meaning trap",
+    "target": "chat",
+    "input": "Résume la mission pour Hubert, sans mentionner le prix de 600 EUR.",
+    "expect": {
+      "spansNegated": [
+        "600 EUR"
+      ],
+      "spansInclude": [
+        "Hubert"
+      ]
+    }
+  },
+  {
+    "id": "stress-pt-negation",
+    "category": "stress, meaning trap",
+    "target": "chat",
+    "input": "Faz um resumo, sem mencionar o valor de 600 EUR, para o Hubert.",
+    "expect": {
+      "spansNegated": [
+        "600 EUR"
+      ],
+      "spansInclude": [
+        "Hubert"
+      ]
+    }
+  },
+  {
+    "id": "stress-long-unbroken",
+    "category": "stress, performance",
+    "target": "chat",
+    "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "expect": {
+      "extractionUnderMs": 100
+    }
   }
 ]

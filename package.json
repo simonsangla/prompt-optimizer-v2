@@ -8,7 +8,10 @@
     "start": "node server.mjs",
     "test": "node --test test/unit.test.mjs",
     "eval": "node eval/run-eval.mjs",
-    "eval:heuristic": "node eval/run-eval.mjs --heuristic"
+    "eval:heuristic": "node eval/run-eval.mjs --heuristic",
+    "eval:stress": "node eval/stress.mjs"
   },
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  }
 }

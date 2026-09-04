@@ -89,6 +89,15 @@ After any production deploy, check `/api/health` returns `"forced": true`, then 
 
 `eval/adversarial.mjs` rewrites its own timestamp on every run, so that file shows as modified after each invocation even when nothing changed.
 
+## Gates
+
+- `node --test test/unit.test.mjs` - unit tests, offline.
+- `node eval/adversarial.mjs` - 7 negative controls: proof the checks can fail.
+- `node eval/stress.mjs` (`npm run eval:stress`) - 22 deterministic regression fixtures (K7, mission-os#617): the real prompts that broke the kernel on 2026-09-04, each pinned to its measured extraction and check outcome. Offline, milliseconds, exit 1 on regression. Writes `eval/EVIDENCE-stress.md`.
+- `node eval/run-eval.mjs` - LLM-mode report; needs a running Ollama, asserts nothing.
+
+Run the first three before any commit; they need no model.
+
 ## Known inconsistency (closed by K0, 2026-09-04)
 
 The heuristic branch used to compute `passed`/`level` by check *name* (`c.name !== 'structure'`) instead of the `advisory` flag. `computeLevel()` in `lib/pipeline.mjs` now decides every level from the flag; the heuristic branch still keeps `structure` out of its verdict on purpose (a missing section is honest there), and `fidelity.basis` states whether the judge counted. K4: the level vocabulary is `checked` / `review` / `failed`; `verified` appears only when a judge actually voted (`OPTIMIZER_JUDGE=blocking`). Literal checks prove spans survived and nothing was invented - not that meaning was preserved.
