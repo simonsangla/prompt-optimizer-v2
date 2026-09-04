@@ -24,7 +24,7 @@ traps - each pinned to the extraction and check outcomes measured after K0-K6.
 | stress-number-noun | stress, meaning trap | 3 | 0 | ok |
 | stress-deadline-budget | stress, meaning trap | 8 | 0 | ok |
 | stress-accented-names | stress, extraction | 5 | 0 | ok |
-| stress-paths-and-quotes | stress, extraction | 5 | 0 | ok |
+| stress-paths-and-quotes | stress, extraction | 4 | 0 | ok |
 | stress-substring-trap | stress, extraction | 2 | 0 | ok |
 | stress-fr-negation | stress, meaning trap | 3 | 2 | ok |
 | stress-pt-negation | stress, meaning trap | 3 | 2 | ok |
