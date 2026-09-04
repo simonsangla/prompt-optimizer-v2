@@ -174,7 +174,7 @@ const ok = (name, advisory = false) => ({ name, passed: true, advisory });
 const bad = (name, advisory = false) => ({ name, passed: false, advisory });
 
 test('computeLevel: judge off -> level comes from deterministic checks only', () => {
-  assert.equal(computeLevel([ok('span_retention'), ok('content_coverage', true)], null, 'off').level, 'verified');
+  assert.equal(computeLevel([ok('span_retention'), ok('content_coverage', true)], null, 'off').level, 'checked'); // K4: no judge ran
   assert.equal(computeLevel([ok('span_retention'), bad('content_coverage', true)], null, 'off').level, 'review');
   assert.equal(computeLevel([bad('span_retention'), ok('content_coverage', true)], null, 'off').level, 'failed');
   assert.equal(computeLevel([ok('span_retention')], null, 'off').basis, 'deterministic');
@@ -183,7 +183,7 @@ test('computeLevel: judge off -> level comes from deterministic checks only', ()
 test('computeLevel: advisory judge never changes the level; blocking judge does', () => {
   const checks = [ok('span_retention'), ok('content_coverage', true)];
   const failingJudge = { name: 'meaning_judge', passed: false, verdict: 'altered' };
-  assert.equal(computeLevel(checks, failingJudge, 'advisory').level, 'verified');
+  assert.equal(computeLevel(checks, failingJudge, 'advisory').level, 'checked'); // K4
   assert.equal(computeLevel(checks, failingJudge, 'advisory').basis, 'deterministic');
   assert.equal(computeLevel(checks, failingJudge, 'blocking').level, 'review');
   assert.equal(computeLevel(checks, failingJudge, 'blocking').basis, 'deterministic+judge');
@@ -285,4 +285,40 @@ test('extraction stays linear on long unbroken input (K5: no catastrophic backtr
   protectedSpans(hostile);
   const ms = Date.now() - t0;
   assert.ok(ms < 250, `protectedSpans took ${ms}ms on 40k unbroken chars`);
+});
+
+// --- K3 + K4 (mission-os#617): script-aware language, honest level vocabulary ---
+import { guessScript } from '../lib/verify.mjs';
+import { LEVELS } from '../lib/pipeline.mjs';
+
+test('guessScript separates writing systems the stopword profile cannot see', () => {
+  assert.equal(guessScript('東京の観光スポットを3つ紹介してください'), 'han');
+  assert.equal(guessScript('Introduce three tourist spots in Tokyo'), 'latin');
+  assert.equal(guessScript('اكتب قصيدة قصيرة'), 'arabic');
+  assert.equal(guessScript('Γράψε ένα ποίημα'), 'greek');
+  assert.equal(guessScript('42 - !'), 'unknown');
+});
+
+test('languageMatch catches translation out of a non-Latin script', () => {
+  const ja = '東京の観光スポットを3つ、それぞれ50字以内で紹介してください。';
+  assert.equal(languageMatch(ja, '# Task\nIntroduce three Tokyo tourist spots, 50 characters each.').passed, false);
+  assert.equal(languageMatch(ja, '# Task\n東京の観光スポットを3つ紹介する。各50字以内。').passed, true);
+});
+
+test('languageMatch does not fail an English prompt over the Portuguese stopword "as"', () => {
+  const src = 'Use as many examples as you can, as long as each one is as short as the previous one.';
+  assert.equal(languageMatch(src, '# Task\nUse as many examples as possible, each as short as the previous one.').passed, true);
+});
+
+test('languageMatch needs a clear winner, not a tie', () => {
+  // French source whose rewrite carries the template's English scaffolding.
+  const fr = 'Écris un poème sur Lisbonne avec le tram.';
+  const mixed = '# Task\nÉcrire un poème sur Lisbonne avec le tram.\n# Open questions\n- Is there a tone you prefer to use for this?';
+  assert.equal(languageMatch(fr, mixed).passed, true);
+});
+
+test('LEVELS vocabulary is honest: the top deterministic level is not called verified', () => {
+  assert.deepEqual(LEVELS, ['checked', 'review', 'failed']);
+  assert.equal(computeLevel([ok('span_retention')], null, 'off').level, 'checked');
+  assert.equal(computeLevel([ok('span_retention')], { passed: true }, 'blocking').level, 'verified');
 });
