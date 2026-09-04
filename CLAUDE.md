@@ -108,6 +108,8 @@ One kernel, thin transports, no per-surface fork: `optimize()` in `lib/pipeline.
 
 ## Known inconsistency (closed by K0, 2026-09-04)
 
+K8 (2026-09-04): the heuristic no longer splits a comma when the following segment opens with a relative pronoun or a bare conjunction (`which`, `that`, `and`, `qui`, `mas`, ...), and no longer joins several goal segments into one sentence. Detaching a clause from its antecedent turned "do not mention churn, which was 12%" into a goal reading "Q3 results which was 12%" - a different claim, with every check green because both literals were still present.
+
 The heuristic branch used to compute `passed`/`level` by check *name* (`c.name !== 'structure'`) instead of the `advisory` flag. `computeLevel()` in `lib/pipeline.mjs` now decides every level from the flag; the heuristic branch still keeps `structure` out of its verdict on purpose (a missing section is honest there), and `fidelity.basis` states whether the judge counted. K4: the level vocabulary is `checked` / `review` / `failed`; `verified` appears only when a judge actually voted (`OPTIMIZER_JUDGE=blocking`). Literal checks prove spans survived and nothing was invented - not that meaning was preserved.
 
 ## Governance
