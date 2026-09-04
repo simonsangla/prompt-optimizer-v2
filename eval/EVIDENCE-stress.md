@@ -5,33 +5,37 @@ Fixtures: the 22 prompts that broke the kernel on 2026-09-04
 (mission-os#617) - garbled, multilingual, very short, very long, and meaning
 traps - each pinned to the extraction and check outcomes measured after K0-K6.
 
-| fixture | category | spans | negated | extract | result |
-|---|---|---|---|---|---|
-| stress-typos | stress, garbled | 2 | 0 | 3ms | ok |
-| stress-chat-noise | stress, garbled | 3 | 0 | 0ms | ok |
-| stress-json-blob | stress, garbled | 9 | 0 | 0ms | ok |
-| stress-fr-short | stress, multilingual | 1 | 0 | 0ms | ok |
-| stress-pt-short | stress, multilingual | 2 | 0 | 0ms | ok |
-| stress-mix-fr-en-pt | stress, multilingual | 6 | 0 | 0ms | ok |
-| stress-japanese | stress, multilingual | 2 | 0 | 5ms | ok |
-| stress-en-with-as | stress, multilingual | 0 | 0 | 0ms | ok |
-| stress-one-word | stress, very short | 0 | 0 | 0ms | ok |
-| stress-punctuation-only | stress, very short | 0 | 0 | 0ms | ok |
-| stress-lone-url | stress, very short | 2 | 0 | 0ms | ok |
-| stress-negation | stress, meaning trap | 2 | 1 | 1ms | ok |
-| stress-relative-clause | stress, meaning trap | 1 | 0 | 0ms | ok |
-| stress-only-scope | stress, meaning trap | 1 | 0 | 0ms | ok |
-| stress-number-noun | stress, meaning trap | 3 | 0 | 0ms | ok |
-| stress-deadline-budget | stress, meaning trap | 8 | 0 | 0ms | ok |
-| stress-accented-names | stress, extraction | 5 | 0 | 0ms | ok |
-| stress-paths-and-quotes | stress, extraction | 5 | 0 | 0ms | ok |
-| stress-substring-trap | stress, extraction | 2 | 0 | 0ms | ok |
-| stress-fr-negation | stress, meaning trap | 3 | 2 | 0ms | ok |
-| stress-pt-negation | stress, meaning trap | 3 | 2 | 0ms | ok |
-| stress-long-unbroken | stress, performance | 0 | 0 | 1ms | ok |
+| fixture | category | spans | negated | result |
+|---|---|---|---|---|
+| stress-typos | stress, garbled | 2 | 0 | ok |
+| stress-chat-noise | stress, garbled | 3 | 0 | ok |
+| stress-json-blob | stress, garbled | 9 | 0 | ok |
+| stress-fr-short | stress, multilingual | 1 | 0 | ok |
+| stress-pt-short | stress, multilingual | 2 | 0 | ok |
+| stress-mix-fr-en-pt | stress, multilingual | 6 | 0 | ok |
+| stress-japanese | stress, multilingual | 2 | 0 | ok |
+| stress-en-with-as | stress, multilingual | 0 | 0 | ok |
+| stress-one-word | stress, very short | 0 | 0 | ok |
+| stress-punctuation-only | stress, very short | 0 | 0 | ok |
+| stress-lone-url | stress, very short | 2 | 0 | ok |
+| stress-negation | stress, meaning trap | 2 | 1 | ok |
+| stress-relative-clause | stress, meaning trap | 1 | 0 | ok |
+| stress-only-scope | stress, meaning trap | 1 | 0 | ok |
+| stress-number-noun | stress, meaning trap | 3 | 0 | ok |
+| stress-deadline-budget | stress, meaning trap | 8 | 0 | ok |
+| stress-accented-names | stress, extraction | 5 | 0 | ok |
+| stress-paths-and-quotes | stress, extraction | 5 | 0 | ok |
+| stress-substring-trap | stress, extraction | 2 | 0 | ok |
+| stress-fr-negation | stress, meaning trap | 3 | 2 | ok |
+| stress-pt-negation | stress, meaning trap | 3 | 2 | ok |
+| stress-long-unbroken | stress, performance | 0 | 0 | ok |
 
 **22/22 fixtures hold.**
 
+
+Timings are asserted (`extractionUnderMs`) but not printed: a report that
+carries wall-clock numbers changes on every run, so the gate would dirty the
+working tree each time it passed and nobody would run it twice.
 
 These are deterministic-layer expectations only. LLM-mode behaviour is
 nondeterministic and is measured separately by `node eval/run-eval.mjs`,
