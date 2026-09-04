@@ -322,3 +322,26 @@ test('LEVELS vocabulary is honest: the top deterministic level is not called ver
   assert.equal(computeLevel([ok('span_retention')], null, 'off').level, 'checked');
   assert.equal(computeLevel([ok('span_retention')], { passed: true }, 'blocking').level, 'verified');
 });
+
+// --- K8 (mission-os#617): the heuristic must not detach a clause from its noun ---
+test('heuristic keeps a relative clause attached to its antecedent', () => {
+  const r = heuristicOptimize('Write a blog post about our Q3 results, we grew 40%, but do not mention churn, which was 12%, format as markdown.', { target: 'chat' });
+  assert.ok(!/Q3 results which was 12%/.test(r.optimized), r.optimized);
+  assert.ok(/churn, which was 12%/.test(r.optimized), r.optimized);
+  assert.ok(/# Task\nWrite a blog post about our Q3 results\.?$/m.test(r.optimized), r.optimized);
+});
+
+test('heuristic does not concatenate several goal segments into one sentence', () => {
+  const r = heuristicOptimize('Build the report. Send it to Andre. Then archive it.', { target: 'chat' });
+  const task = r.optimized.split('\n# ')[0];
+  assert.ok(!/report\. Send it to Andre\. Then archive it\./.test(task.replace(/\n/g, ' ')) || task.includes('\n- '), r.optimized);
+  assert.ok(r.optimized.includes('Andre'));
+  assert.ok(r.optimized.includes('archive'));
+});
+
+test('heuristic still splits a comma-spliced prompt into its buckets', () => {
+  const r = heuristicOptimize('Make a landing page for my bakery, must not use React, return it as one HTML file.', { target: 'chat' });
+  assert.ok(/# Constraints/.test(r.optimized), r.optimized);
+  assert.ok(/# Output format/.test(r.optimized), r.optimized);
+  assert.ok(/must not use React/.test(r.optimized));
+});
