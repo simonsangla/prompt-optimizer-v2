@@ -198,3 +198,44 @@ test('optimize rejects over-budget input up front with a typed error (no silent 
   assert.equal(r.fidelity.basis, 'deterministic');
   assert.ok(r.timings && typeof r.timings.checksMs === 'number');
 });
+
+// --- K6 (mission-os#617): negation-aware spans; exempt sections do not count ---
+test('protectedSpans marks spans inside a "do not mention" scope as negated', () => {
+  const spans = protectedSpans('Write a blog post about our Q3 results, we grew 40%, but do not mention churn, which was 12%, format as markdown.');
+  const by = Object.fromEntries(spans.map((s) => [s.span, !!s.negated]));
+  assert.equal(by['40%'], false);
+  assert.equal(by['12%'], true); // relative clause stays attached to the negated noun
+  assert.ok(!('markdown' in by) || by['markdown'] === false); // next imperative segment is outside the scope
+});
+
+test('protectedSpans reads French and Portuguese negation cues', () => {
+  const fr = protectedSpans('Résume la mission pour Hubert, sans mentionner le prix de 600 EUR.');
+  assert.equal(fr.find((s) => s.span === '600 EUR').negated, true);
+  assert.equal(!!fr.find((s) => s.span === 'Hubert').negated, false);
+  const pt = protectedSpans('Faz um resumo, sem mencionar o valor de 600 EUR, para o Hubert.');
+  assert.equal(pt.find((s) => s.span === '600 EUR').negated, true);
+});
+
+test('spanRetention does not require negated spans and reports them as exempt', () => {
+  const spans = protectedSpans('Write about our Q3 results, we grew 40%, but do not mention churn, which was 12%.');
+  const r = spanRetention(spans, '# Task\nWrite about our Q3 results.\n# Constraints\n- We grew 40%.\n- Do not mention churn.');
+  assert.equal(r.passed, true);
+  assert.ok(r.exempt.some((s) => s.span === '12%'));
+  assert.equal(r.total, spans.filter((s) => !s.negated).length);
+});
+
+test('spanRetention ignores spans that only appear in Assumptions / Open questions', () => {
+  const spans = protectedSpans('Refactor the parser, budget 500 EUR.');
+  const r = spanRetention(spans, '# Task\nRefactor the parser.\n# Open questions\n- Is the 500 EUR budget firm?');
+  assert.equal(r.passed, false);
+  assert.ok(r.missing.some((m) => m.span.includes('500')));
+});
+
+test('contentCoverage ignores terms that only appear in Assumptions / Open questions', () => {
+  const src = 'Only refactor the parser; do not touch the tests or the CLI.';
+  const demoted = '# Task\nRefactor the parser.\n# Constraints\nNone specified.\n# Open questions\n- Should tests be touched?\n- What is the CLI?';
+  const kept = '# Task\nRefactor the parser only.\n# Constraints\n- Do not touch the tests or the CLI.';
+  assert.equal(contentCoverage(src, kept, 0.85).passed, true);
+  assert.equal(contentCoverage(src, demoted, 0.85).passed, false);
+  assert.ok(contentCoverage(src, demoted, 0.85).missing.includes('tests'));
+});
