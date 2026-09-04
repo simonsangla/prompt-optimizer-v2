@@ -98,6 +98,14 @@ After any production deploy, check `/api/health` returns `"forced": true`, then 
 
 Run the first three before any commit; they need no model.
 
+## Surfaces
+
+One kernel, thin transports, no per-surface fork: `optimize()` in `lib/pipeline.mjs`.
+
+- `server.mjs` - local HTTP on :8787, binds the LAN (phone, Shortcuts).
+- `api/optimize.mjs` - Vercel serverless, deterministic engine only.
+- `bin/optimize.mjs` - shell entrypoint: `echo "prompt" | node bin/optimize.mjs --target claude-code`. Prints the rewrite on stdout and the fidelity verdict on stderr, so it pipes cleanly. Exit 0 checked / 1 review / 2 failed / 3 usage or budget error. This is what a Claude Code skill, a Shortcut over ssh, or a macOS Quick Action calls.
+
 ## Known inconsistency (closed by K0, 2026-09-04)
 
 The heuristic branch used to compute `passed`/`level` by check *name* (`c.name !== 'structure'`) instead of the `advisory` flag. `computeLevel()` in `lib/pipeline.mjs` now decides every level from the flag; the heuristic branch still keeps `structure` out of its verdict on purpose (a missing section is honest there), and `fidelity.basis` states whether the judge counted. K4: the level vocabulary is `checked` / `review` / `failed`; `verified` appears only when a judge actually voted (`OPTIMIZER_JUDGE=blocking`). Literal checks prove spans survived and nothing was invented - not that meaning was preserved.
