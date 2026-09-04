@@ -62,7 +62,7 @@ for (const f of fixtures) {
     judgePass: result.fidelity.judge ? result.fidelity.judge.passed : null,
     coverage: byName.content_coverage ? byName.content_coverage.ratio : null,
     coveragePass: byName.content_coverage ? byName.content_coverage.passed : null,
-    level: result.fidelity.level || (result.fidelity.passed ? 'verified' : 'failed'),
+    level: result.fidelity.level || (result.fidelity.passed ? 'checked' : 'failed'),
     repaired: result.repaired,
     overall: result.fidelity.passed,
     secs,
@@ -84,7 +84,12 @@ const pct = (sel) => {
 };
 
 const b = (v) => (v === null ? 'n/a' : v ? 'PASS' : 'FAIL');
-const mode = heuristicOnly ? 'heuristic (deterministic fallback)' : `llm (${DEFAULT_MODEL}) with judge + 1 repair round`;
+const judgeMode = process.env.OPTIMIZER_JUDGE || 'off';
+// The judge is off by default since K0, so the old hardcoded "with judge"
+// header claimed a verification that never ran. State what actually happened.
+const mode = heuristicOnly
+  ? 'heuristic (deterministic fallback)'
+  : `llm (${DEFAULT_MODEL}), judge ${judgeMode}, 1 repair round on a blocking failure`;
 
 const md = `# Intact - eval evidence
 
@@ -102,7 +107,7 @@ const md = `# Intact - eval evidence
 | Required structure present | ${pct((r) => r.structurePass)} |
 | Meaning judge (LLM) verdict "preserved" | ${pct((r) => r.judgePass)} |
 | Content coverage above ${Math.round(100 * 0.85)}% (advisory) | ${pct((r) => r.coveragePass)} |
-| Verdict "verified" (every check clean) | ${rows.filter((r) => r.level === 'verified').length}/${rows.length} |
+| Verdict "checked"/"verified" (every check clean) | ${rows.filter((r) => r.level === 'verified' || r.level === 'checked').length}/${rows.length} |
 | Verdict "review" (literals clean, soft signal flagged) | ${rows.filter((r) => r.level === 'review').length}/${rows.length} |
 | Verdict "failed" (a blocking check fired) | ${rows.filter((r) => r.level === 'failed').length}/${rows.length} |
 | Overall fidelity (all checks) | ${pct((r) => r.overall)} |
@@ -125,7 +130,8 @@ ${failDetails.length ? `## Failure details\n\n${failDetails.map((d) => `### ${d.
 - content_coverage is ADVISORY: it can lower a verdict to "review" but never to
   "failed", because legitimate rephrasing can drop a source word without
   changing meaning.
-- verdicts: verified = every check clean; review = literals clean but a soft
+- verdicts: checked = every check clean, no judge ran; verified = same with a
+  judge that voted; review = literals clean but a soft
   signal fired; failed = a blocking deterministic check fired.
 `;
 
