@@ -239,3 +239,50 @@ test('contentCoverage ignores terms that only appear in Assumptions / Open quest
   assert.equal(contentCoverage(src, demoted, 0.85).passed, false);
   assert.ok(contentCoverage(src, demoted, 0.85).missing.includes('tests'));
 });
+
+// --- K2 + K5 (mission-os#617): tokenised retention, Unicode spans, safe regexes ---
+test('spanRetention matches whole tokens, not substrings', () => {
+  const spans = [{ span: 'Paris', kind: 'proper-noun' }, { span: '5', kind: 'number' }, { span: 'React', kind: 'proper-noun' }];
+  const r = spanRetention(spans, '# Task\nA comparison of 2025 with Preact.');
+  assert.equal(r.passed, false);
+  assert.equal(r.missing.length, 3); // was: all three "kept" by comparison / 2025 / Preact
+  assert.equal(spanRetention(spans, '# Task\nParis, 5 items, React.').passed, true);
+});
+
+test('spanRetention still matches inside punctuation and case-insensitively', () => {
+  const spans = [{ span: 'Snowflake', kind: 'proper-noun' }, { span: '800 words', kind: 'number' }];
+  assert.equal(spanRetention(spans, '# Task\n- "snowflake", 800 words max.').passed, true);
+});
+
+test('protectedSpans keeps accented and non-Latin proper nouns', () => {
+  const values = protectedSpans('Envoie le devis a Hubert Gregoire et a Sonia Pinto pour Sao Paulo.').map((s) => s.span);
+  assert.ok(values.includes('Hubert Gregoire'));
+  assert.ok(values.includes('Sonia Pinto'));
+  const accented = protectedSpans('Envoie le devis a Hubert Grégoire et a Sónia Pinto.').map((s) => s.span);
+  assert.ok(accented.includes('Hubert Grégoire'), JSON.stringify(accented));
+  assert.ok(accented.includes('Sónia Pinto'), JSON.stringify(accented));
+});
+
+test('protectedSpans reads curly quotes and relative paths', () => {
+  const curly = protectedSpans('Use “move fast, ship daily” as the tagline.').map((s) => s.span);
+  assert.ok(curly.includes('move fast, ship daily'), JSON.stringify(curly));
+  const paths = protectedSpans('Edit lib/pipeline.mjs and src/app.ts, not ./scripts/run.sh').map((s) => s.span);
+  assert.ok(paths.includes('lib/pipeline.mjs'), JSON.stringify(paths));
+  assert.ok(paths.includes('src/app.ts'));
+  assert.ok(paths.includes('./scripts/run.sh'));
+});
+
+test('unit-suffixed numbers require a word boundary ("3 sections" is not "3 sec")', () => {
+  const values = protectedSpans('Give me 3 sections of 200 words each.').map((s) => s.span);
+  assert.ok(!values.includes('3 sec'), JSON.stringify(values));
+  assert.ok(values.includes('3'));
+  assert.ok(protectedSpans('cut query time from 45s to 3s').map((s) => s.span).includes('45s'));
+});
+
+test('extraction stays linear on long unbroken input (K5: no catastrophic backtracking)', () => {
+  const hostile = 'a'.repeat(40000);
+  const t0 = Date.now();
+  protectedSpans(hostile);
+  const ms = Date.now() - t0;
+  assert.ok(ms < 250, `protectedSpans took ${ms}ms on 40k unbroken chars`);
+});
