@@ -345,3 +345,36 @@ test('heuristic still splits a comma-spliced prompt into its buckets', () => {
   assert.ok(/# Output format/.test(r.optimized), r.optimized);
   assert.ok(/must not use React/.test(r.optimized));
 });
+
+// --- K9 (mission-os#617): token boundaries in scripts with no word separator ---
+import { containsToken } from '../lib/verify.mjs';
+
+test('containsToken treats CJK and Thai neighbours as boundaries, not word characters', () => {
+  // Japanese has no spaces: "3" is always glued to a letter, so a Latin-style
+  // boundary rejected a number the rewrite had actually kept.
+  assert.equal(containsToken('紹介東京の観光スポット 3つ、それぞれ50字以内', '3'), true);
+  assert.equal(containsToken('50字以内で紹介してください', '50'), true);
+  assert.equal(containsToken('3つの観光スポット', '観光スポット'), true);
+  assert.equal(containsToken('ราคา 600 บาท', '600'), true);
+});
+
+test('containsToken still rejects a digit inside a longer number', () => {
+  assert.equal(containsToken('a comparison of 2025', '5'), false);
+  assert.equal(containsToken('5 items', '5'), true);
+  assert.equal(containsToken('Preact renders', 'React'), false);
+  assert.equal(containsToken('banana bread', 'Ana'), false);
+});
+
+test('spanRetention keeps a Japanese rewrite that kept its numbers', () => {
+  const spans = protectedSpans('東京の観光スポットを3つ、それぞれ50字以内で紹介してください。');
+  const kept = '# Task\n紹介東京の観光スポット 3つ、それぞれ50字以内を紹介してください。\n# Constraints\n- 50文字以内';
+  assert.equal(spanRetention(spans, kept).passed, true, JSON.stringify(spanRetention(spans, kept).missing));
+});
+
+test('paths do not swallow the sentence full stop', () => {
+  const values = protectedSpans('Run ./scripts/run.sh. Then edit lib/pipeline.mjs, and open /etc/hosts.').map((s) => s.span);
+  assert.ok(values.includes('./scripts/run.sh'), JSON.stringify(values));
+  assert.ok(!values.includes('./scripts/run.sh.'), JSON.stringify(values));
+  assert.ok(values.includes('/etc/hosts'));
+  assert.ok(values.includes('lib/pipeline.mjs'));
+});
