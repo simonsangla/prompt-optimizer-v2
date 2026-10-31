@@ -72,7 +72,7 @@ Watch for vacuous-passing generally: when narrowing a check to kill a false posi
 
 ## Deployment
 
-Production is https://intact-prompt-optimizer.vercel.app (Vercel project `simonsanglas-projects/intact-prompt-optimizer`, private repo `simonsangla/prompt-optimizer-v2`).
+Production is https://intact-prompt-optimizer.vercel.app (Vercel project `simonsanglas-projects/intact-prompt-optimizer`, public repo `simonsangla/prompt-optimizer-v2`).
 
 **Production runs the deterministic engine only** — Vercel cannot host Ollama. The UI states which engine is live; keep that honest if you touch it.
 

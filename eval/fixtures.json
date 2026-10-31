@@ -33,7 +33,7 @@
     "id": "french-email",
     "category": "non-english",
     "target": "chat",
-    "input": "ecris un email pour mon client Teresa pour repousser la reunion de mardi a jeudi 14h, reste poli mais bref, en francais"
+    "input": "ecris un email pour mon client Clara pour repousser la reunion de mardi a jeudi 14h, reste poli mais bref, en francais"
   },
   {
     "id": "analytics-query",
@@ -116,10 +116,10 @@
     "id": "stress-pt-short",
     "category": "stress, multilingual",
     "target": "chat",
-    "input": "Faz um resumo da reunião com o Hubert em 5 pontos, sem jargão.",
+    "input": "Faz um resumo da reunião com o Marcel em 5 pontos, sem jargão.",
     "expect": {
       "spansInclude": [
-        "Hubert",
+        "Marcel",
         "5"
       ],
       "script": "latin"
@@ -129,13 +129,13 @@
     "id": "stress-mix-fr-en-pt",
     "category": "stress, multilingual",
     "target": "chat",
-    "input": "Faz um resumo of the Viaposte mission pour Hubert Grégoire, em português, avec les chiffres: 600 EUR/jour, 12 jours, Sónia Pinto fait la facture.",
+    "input": "Faz um resumo of the Northwind mission pour Marcel Brémond, em português, avec les chiffres: 600 EUR/jour, 12 jours, Mónica Faria fait la facture.",
     "expect": {
       "spansInclude": [
-        "Hubert Grégoire",
-        "Sónia Pinto",
+        "Marcel Brémond",
+        "Mónica Faria",
         "600 EUR",
-        "Viaposte"
+        "Northwind"
       ],
       "script": "latin"
     }
@@ -211,10 +211,10 @@
     "id": "stress-relative-clause",
     "category": "stress, meaning trap",
     "target": "chat",
-    "input": "Email the vendor who missed the deadline, not the one who delivered early, and cc Andre.",
+    "input": "Email the vendor who missed the deadline, not the one who delivered early, and cc Pedro.",
     "expect": {
       "spansInclude": [
-        "Andre"
+        "Pedro"
       ],
       "script": "latin"
     }
@@ -261,11 +261,11 @@
     "id": "stress-accented-names",
     "category": "stress, extraction",
     "target": "chat",
-    "input": "Envoie le devis a Hubert Grégoire et a Sónia Pinto pour São Paulo, montant 600 EUR.",
+    "input": "Envoie le devis a Marcel Brémond et a Mónica Faria pour São Paulo, montant 600 EUR.",
     "expect": {
       "spansInclude": [
-        "Hubert Grégoire",
-        "Sónia Pinto",
+        "Marcel Brémond",
+        "Mónica Faria",
         "São Paulo",
         "600 EUR"
       ]
@@ -302,13 +302,13 @@
     "id": "stress-fr-negation",
     "category": "stress, meaning trap",
     "target": "chat",
-    "input": "Résume la mission pour Hubert, sans mentionner le prix de 600 EUR.",
+    "input": "Résume la mission pour Marcel, sans mentionner le prix de 600 EUR.",
     "expect": {
       "spansNegated": [
         "600 EUR"
       ],
       "spansInclude": [
-        "Hubert"
+        "Marcel"
       ]
     }
   },
@@ -316,13 +316,13 @@
     "id": "stress-pt-negation",
     "category": "stress, meaning trap",
     "target": "chat",
-    "input": "Faz um resumo, sem mencionar o valor de 600 EUR, para o Hubert.",
+    "input": "Faz um resumo, sem mencionar o valor de 600 EUR, para o Marcel.",
     "expect": {
       "spansNegated": [
         "600 EUR"
       ],
       "spansInclude": [
-        "Hubert"
+        "Marcel"
       ]
     }
   },

@@ -209,10 +209,10 @@ test('protectedSpans marks spans inside a "do not mention" scope as negated', ()
 });
 
 test('protectedSpans reads French and Portuguese negation cues', () => {
-  const fr = protectedSpans('Résume la mission pour Hubert, sans mentionner le prix de 600 EUR.');
+  const fr = protectedSpans('Résume la mission pour Marcel, sans mentionner le prix de 600 EUR.');
   assert.equal(fr.find((s) => s.span === '600 EUR').negated, true);
-  assert.equal(!!fr.find((s) => s.span === 'Hubert').negated, false);
-  const pt = protectedSpans('Faz um resumo, sem mencionar o valor de 600 EUR, para o Hubert.');
+  assert.equal(!!fr.find((s) => s.span === 'Marcel').negated, false);
+  const pt = protectedSpans('Faz um resumo, sem mencionar o valor de 600 EUR, para o Marcel.');
   assert.equal(pt.find((s) => s.span === '600 EUR').negated, true);
 });
 
@@ -255,12 +255,12 @@ test('spanRetention still matches inside punctuation and case-insensitively', ()
 });
 
 test('protectedSpans keeps accented and non-Latin proper nouns', () => {
-  const values = protectedSpans('Envoie le devis a Hubert Gregoire et a Sonia Pinto pour Sao Paulo.').map((s) => s.span);
-  assert.ok(values.includes('Hubert Gregoire'));
-  assert.ok(values.includes('Sonia Pinto'));
-  const accented = protectedSpans('Envoie le devis a Hubert Grégoire et a Sónia Pinto.').map((s) => s.span);
-  assert.ok(accented.includes('Hubert Grégoire'), JSON.stringify(accented));
-  assert.ok(accented.includes('Sónia Pinto'), JSON.stringify(accented));
+  const values = protectedSpans('Envoie le devis a Marcel Bremond et a Monica Faria pour Sao Paulo.').map((s) => s.span);
+  assert.ok(values.includes('Marcel Bremond'));
+  assert.ok(values.includes('Monica Faria'));
+  const accented = protectedSpans('Envoie le devis a Marcel Brémond et a Mónica Faria.').map((s) => s.span);
+  assert.ok(accented.includes('Marcel Brémond'), JSON.stringify(accented));
+  assert.ok(accented.includes('Mónica Faria'), JSON.stringify(accented));
 });
 
 test('protectedSpans reads curly quotes and relative paths', () => {
@@ -332,10 +332,10 @@ test('heuristic keeps a relative clause attached to its antecedent', () => {
 });
 
 test('heuristic does not concatenate several goal segments into one sentence', () => {
-  const r = heuristicOptimize('Build the report. Send it to Andre. Then archive it.', { target: 'chat' });
+  const r = heuristicOptimize('Build the report. Send it to Pedro. Then archive it.', { target: 'chat' });
   const task = r.optimized.split('\n# ')[0];
-  assert.ok(!/report\. Send it to Andre\. Then archive it\./.test(task.replace(/\n/g, ' ')) || task.includes('\n- '), r.optimized);
-  assert.ok(r.optimized.includes('Andre'));
+  assert.ok(!/report\. Send it to Pedro\. Then archive it\./.test(task.replace(/\n/g, ' ')) || task.includes('\n- '), r.optimized);
+  assert.ok(r.optimized.includes('Pedro'));
   assert.ok(r.optimized.includes('archive'));
 });
 

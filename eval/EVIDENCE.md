@@ -188,14 +188,14 @@ Structure: a brief summary statement followed by an explanation of node selectio
 </details>
 
 ### stress-mix-fr-en-pt
-- failed checks: span_retention {"passed":false,"total":6,"kept":5,"missing":[{"span":"Viaposte","kind":"proper-noun"}],"exempt":[]}
+- failed checks: span_retention {"passed":false,"total":6,"kept":5,"missing":[{"span":"Northwind","kind":"proper-noun"}],"exempt":[]}
 - judge: passed
 
 <details><summary>output</summary>
 
 ```
 # Task
-Fait un résumé de la mission de Viapostes pour Hubert Grégoire, en portugais, avec les chiffres : 600 EUR/jour, 12 jours, Sónia Pinto fait la facture.
+Fait un résumé de la mission de Northwinds pour Marcel Brémond, en portugais, avec les chiffres : 600 EUR/jour, 12 jours, Mónica Faria fait la facture.
 
 # Context
 Aucune information sur l'audience et le contexte n'est fournie.
@@ -204,10 +204,10 @@ Aucune information sur l'audience et le contexte n'est fournie.
 Tone est pas spécifié. Longueur est pas spécifiée. Exclusions sont pas spécifiées.
 
 # Output format
-La réponse devrait être structurée comme un résumé de la mission de Viapostes pour Hubert Grégoire en portugais, avec les chiffres.
+La réponse devrait être structurée comme un résumé de la mission de Northwinds pour Marcel Brémond en portugais, avec les chiffres.
 
 # Assumptions
-(assumption): Les chiffres mentionnés (600 EUR/jour et 12 jours) sont pertinents à la mission de Viapostes.
+(assumption): Les chiffres mentionnés (600 EUR/jour et 12 jours) sont pertinents à la mission de Northwinds.
 
 # Open questions
 - Sont-ils des informations supplémentaires qui devraient être incluses dans le résumé ?
@@ -326,7 +326,7 @@ PIPELINE ERROR: The operation was aborted due to timeout
 
 ```
 # Task
-Résumé de la mission pour Hubert
+Résumé de la mission pour Marcel
 
 # Context
 Aucune information sur l'audience ou le background est fournie.
@@ -348,7 +348,7 @@ Aucune information sur l'audience ou le background est fournie.
 
 ```
 # Task
-Resumir informações sobre o Hubert
+Resumir informações sobre o Marcel
 
 # Context
 Audiência e background não estão especificados
@@ -363,7 +363,7 @@ Resumo em uma frase ou duas frases
 (assumption): O resumo deve ser conciso e informativo.
 
 # Open questions
-Valor de 600 EUR do Hubert
+Valor de 600 EUR do Marcel
 ```
 </details>
 
