@@ -32,9 +32,21 @@ optimized prompt + fidelity report (PASS/FAIL per check)
 If Ollama is offline the pipeline degrades to a deterministic heuristic that only
 rearranges source sentences - meaning-safe by construction.
 
+## Who it's for
+
+Anyone who writes rough prompts for coding agents, chat assistants or APIs and wants a structured version they can trust: every rewrite ships with a fidelity report showing what was kept, flagged or left as an open question. Built with plain Node.js (stdlib only, no dependencies).
+
+## Scope
+
+Intact is a text-processing tool for prompts. It does not train, fine-tune, serve or benchmark models; the `eval/` folder holds regression fixtures that test this tool's own checks, not model quality.
+
+## Roadmap and license
+
+See [ROADMAP.md](ROADMAP.md). Released under the [MIT License](LICENSE).
+
 ## Repo
 
-https://github.com/simonsangla/prompt-optimizer-v2 (private)
+https://github.com/simonsangla/prompt-optimizer-v2
 
 ## Live deployment
 
@@ -50,7 +62,7 @@ ollama serve          # optional but recommended (local, free, private)
 node server.mjs       # http://localhost:8787 (binds 0.0.0.0 for LAN)
 ```
 
-Default model: `llama3.2:3b` via `OPTIMIZER_MODEL`. No API keys, no cloud calls,
+Set the model with `OPTIMIZER_MODEL` (verified with `llama3.2:3b`; the built-in default `llama3.1:8b` is rejected by current Ollama, so always set it). No API keys, no cloud calls,
 no dependencies (`node:` stdlib only, Node 18+).
 
 ## Evidence
