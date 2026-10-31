@@ -3,6 +3,7 @@
   "version": "2.0.0-prototype",
   "description": "Prompt Optimizer v2 - rough intent to executable prompt, meaning preserved and verified",
   "type": "module",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "start": "node server.mjs",
